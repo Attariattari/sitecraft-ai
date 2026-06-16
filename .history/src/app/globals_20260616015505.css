@@ -44,18 +44,6 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
-    /* Dynamic Template Theme Variables */
-    --color-template-primary: var(--template-primary, var(--primary));
-    --color-template-primary-foreground: var(--template-primary-foreground, var(--primary-foreground));
-    --color-template-secondary: var(--template-secondary, var(--secondary));
-    --color-template-secondary-foreground: var(--template-secondary-foreground, var(--secondary-foreground));
-    --color-template-accent: var(--template-accent, var(--accent));
-    --color-template-accent-foreground: var(--template-accent-foreground, var(--accent-foreground));
-    --color-template-background: var(--template-background, var(--background));
-    --color-template-soft: var(--template-soft-background, var(--soft-bg));
-    --color-template-foreground: var(--template-foreground, var(--foreground));
-    --color-template-muted: var(--template-muted-foreground, var(--muted-foreground));
-    --color-template-border: var(--template-border, var(--border));
 }
 
 :root {
