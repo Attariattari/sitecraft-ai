@@ -5,6 +5,18 @@ import { ArrowRight, Sparkles, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+const floatingOrbs = [
+  { size: 500, top: "-10%", right: "-5%", color: "var(--primary)", delay: 0 },
+  {
+    size: 400,
+    bottom: "-15%",
+    left: "-8%",
+    color: "var(--accent)",
+    delay: 0.3,
+  },
+  { size: 300, top: "40%", left: "30%", color: "var(--primary)", delay: 0.6 },
+];
+
 const stats = [
   { value: "10,000+", label: "Websites Built" },
   { value: "50+", label: "Premium Themes" },
@@ -14,16 +26,43 @@ const stats = [
 
 export function HeroSection() {
   return (
-    <section className="relative pt-32 pb-24 lg:pt-44 lg:pb-32 overflow-hidden bg-transparent">
+    <section className="relative pt-32 pb-24 lg:pt-44 lg:pb-32 overflow-hidden bg-background">
+      {/* Ambient orbs */}
+      {floatingOrbs.map((orb, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: orb.size,
+            height: orb.size,
+            top: orb.top,
+            bottom: orb.bottom,
+            left: orb.left,
+            right: orb.right,
+            background: orb.color,
+            opacity: 0.06,
+            filter: "blur(100px)",
+          }}
+        />
+      ))}
+
+      {/* Grid pattern overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: `linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(to right, var(--foreground) 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+        }}
+      />
+
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
           {/* Announcement badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-8 backdrop-blur-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-8"
           >
             <Sparkles className="size-4" />
             <span>AI-Powered Website Builder — Now in Open Beta</span>
@@ -33,8 +72,7 @@ export function HeroSection() {
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05 }}
             className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight text-foreground mb-8 leading-[1.05]"
           >
@@ -43,8 +81,7 @@ export function HeroSection() {
               <span className="relative z-10 text-primary">Websites</span>
               <motion.span
                 initial={{ scaleX: 0 }}
-                whileInView={{ scaleX: 1 }}
-                viewport={{ once: true }}
+                animate={{ scaleX: 1 }}
                 transition={{ duration: 0.4, delay: 0.5, ease: "easeOut" }}
                 className="absolute -bottom-2 left-0 right-0 h-1 bg-primary/30 rounded-full origin-left"
               />
@@ -58,8 +95,7 @@ export function HeroSection() {
           {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
             className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
           >
@@ -71,8 +107,7 @@ export function HeroSection() {
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20"
           >
@@ -88,7 +123,7 @@ export function HeroSection() {
             <Button
               variant="outline"
               size="lg"
-              className="h-14 px-10 text-lg font-semibold rounded-2xl border-2 hover:bg-soft hover:scale-105 transition-all duration-300 w-full sm:w-auto gap-2 backdrop-blur-sm bg-background/50"
+              className="h-14 px-10 text-lg font-semibold rounded-2xl border-2 hover:bg-soft hover:scale-105 transition-all duration-300 w-full sm:w-auto gap-2"
             >
               <Play className="size-4 fill-current" />
               Watch Demo
@@ -98,8 +133,7 @@ export function HeroSection() {
           {/* Stats row */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
             className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto"
           >
@@ -107,8 +141,7 @@ export function HeroSection() {
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.55 + i * 0.07 }}
                 className="flex flex-col items-center gap-1"
               >
@@ -126,14 +159,13 @@ export function HeroSection() {
         {/* Hero visual — browser mockup */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
           className="mt-20 max-w-5xl mx-auto"
         >
-          <div className="relative rounded-2xl border border-border bg-card shadow-2xl shadow-black/10 overflow-hidden backdrop-blur-sm bg-opacity-70">
+          <div className="relative rounded-2xl border border-border bg-card shadow-2xl shadow-black/10 overflow-hidden">
             {/* Browser bar */}
-            <div className="flex items-center gap-3 px-5 py-4 bg-muted/40 border-b border-border">
+            <div className="flex items-center gap-3 px-5 py-4 bg-soft border-b border-border">
               <div className="flex gap-2">
                 <div className="size-3 rounded-full bg-muted-foreground/20" />
                 <div className="size-3 rounded-full bg-muted-foreground/20" />
@@ -144,7 +176,7 @@ export function HeroSection() {
               </div>
             </div>
             {/* Mockup content */}
-            <div className="bg-muted/10 p-6 md:p-10 min-h-[280px] flex flex-col gap-5">
+            <div className="bg-soft p-6 md:p-10 min-h-[280px] flex flex-col gap-5">
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Sparkles className="size-5 text-primary" />

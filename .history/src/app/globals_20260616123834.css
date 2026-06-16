@@ -59,7 +59,7 @@
 }
 
 :root {
-    --background: #F8FAFC;
+    --background: #FFFFFF;
     --foreground: #0F172A;
     --card: #FFFFFF;
     --card-foreground: #0F172A;
@@ -132,36 +132,7 @@
         @apply bg-background text-foreground;
     }
     html {
-        @apply font-sans scroll-smooth;
-    }
-}
-
-@layer utilities {
-    .glass {
-        backdrop-filter: blur(24px);
-        background-color: rgba(255, 255, 255, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-    .dark .glass {
-        background-color: rgba(2, 6, 23, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .glass-card {
-        backdrop-filter: blur(12px);
-        background-color: rgba(255, 255, 255, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        transition: all 0.3s ease;
-    }
-    .glass-card:hover {
-        background-color: rgba(255, 255, 255, 0.6);
-    }
-    .dark .glass-card {
-        background-color: rgba(15, 23, 42, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .dark .glass-card:hover {
-        background-color: rgba(15, 23, 42, 0.6);
+        @apply font-sans;
     }
 }
 
