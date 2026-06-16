@@ -43,7 +43,7 @@ const features = [
     description:
       "Every site is pixel-perfect on mobile, tablet, and desktop — no extra effort required.",
     color: "accent",
-    span: "col-span-1 md:col-span-2",
+    span: "col-span-1",
   },
   {
     icon: LayoutTemplate,
@@ -75,7 +75,7 @@ const features = [
     description:
       "SSL by default, data encryption at rest, SOC 2 compliant infrastructure, and automated backups.",
     color: "accent",
-    span: "col-span-1 md:col-span-2",
+    span: "col-span-1",
   },
 ];
 
@@ -120,7 +120,7 @@ export function FeaturesSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-5"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
         >
           {features.map((feature, i) => {
             const Icon = feature.icon;
@@ -131,7 +131,7 @@ export function FeaturesSection() {
                 variants={cardVariants}
                 className={`group relative flex flex-col gap-5 p-8 rounded-3xl border border-border bg-background overflow-hidden cursor-default
                   hover:border-${isPrimary ? "primary" : "accent"}/40
-                  hover:shadow-xl transition-all duration-300 ${feature.span}`}
+                  hover:shadow-xl transition-all duration-300`}
               >
                 {/* Hover glow */}
                 <div
