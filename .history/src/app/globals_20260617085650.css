@@ -123,58 +123,58 @@
     html {
         @apply scroll-smooth;
         font-family: var(--font-sans);
-        font-size: 16px;
+        font-size: 18px;
     }
 
     body {
         @apply bg-background text-foreground;
-        font-size: 1rem;
+        font-size: 1.125rem;
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.015em;
     }
 
     h1 {
         @apply font-black tracking-tighter text-foreground;
-        font-size: 2.5rem;
-        line-height: 1.1;
-        margin-bottom: 1rem;
+        font-size: 4rem;
+        line-height: 1.05;
+        margin-bottom: 1.25rem;
     }
 
     h2 {
-        @apply font-black tracking-tight text-foreground;
-        font-size: 2rem;
-        line-height: 1.15;
-        margin-bottom: 0.75rem;
+        @apply font-black tracking-tighter text-foreground;
+        font-size: 3.25rem;
+        line-height: 1.1;
+        margin-bottom: 1.25rem;
     }
 
     h3 {
-        @apply font-bold tracking-tight text-foreground;
-        font-size: 1.5rem;
-        line-height: 1.25;
-        margin-bottom: 0.5rem;
+        @apply font-black tracking-tight text-foreground;
+        font-size: 2.5rem;
+        line-height: 1.2;
+        margin-bottom: 1rem;
     }
 
     h4 {
         @apply font-bold tracking-tight text-foreground;
-        font-size: 1.25rem;
+        font-size: 2rem;
         line-height: 1.35;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
     }
 
     h5 {
-        @apply font-semibold tracking-tight text-foreground;
-        font-size: 1.125rem;
+        @apply font-bold tracking-tight text-foreground;
+        font-size: 1.75rem;
         line-height: 1.4;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
     }
 
     h6 {
-        @apply font-semibold text-foreground;
-        font-size: 1rem;
+        @apply font-bold tracking-tight text-foreground;
+        font-size: 1.5rem;
         line-height: 1.45;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
     }
 
     p {
