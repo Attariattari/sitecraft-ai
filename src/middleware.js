@@ -24,8 +24,27 @@ export function middleware(request) {
             const payloadBase64 = authCookie.value.split(".")[1];
             const decodedPayload = JSON.parse(atob(payloadBase64));
 
-            // Block restricted users from Dashboard
-            if (decodedPayload.status === "restricted") {
+            // Check token expiry from payload (exp is in seconds)
+            const exp = decodedPayload.exp;
+            const nowSec = Math.floor(Date.now() / 1000);
+            const tokenExpired = exp && Number(exp) > 0 ? Number(exp) <= nowSec : false;
+
+            // If token expired or malformed, treat as guest -> redirect to login
+            if (tokenExpired) {
+                const url = new URL("/login", request.url);
+                url.searchParams.set("redirect", pathname);
+                return NextResponse.redirect(url);
+            }
+
+            // Allow the configured root super-admin to bypass accidental restriction
+            const ROOT_SUPER = process.env.ROOT_SUPER_ADMIN_EMAIL
+                ? process.env.ROOT_SUPER_ADMIN_EMAIL.toLowerCase().trim()
+                : null;
+            const isRootEmail = decodedPayload.email && ROOT_SUPER && decodedPayload.email.toLowerCase() === ROOT_SUPER;
+            const isRootFlag = decodedPayload.isRootSuperAdmin === true;
+
+            // Block restricted users from Dashboard (unless root super-admin)
+            if (decodedPayload.status === "restricted" && !isRootEmail && !isRootFlag) {
                 return NextResponse.redirect(new URL("/restricted", request.url));
             }
             if (decodedPayload.status === "suspended") {
@@ -34,7 +53,10 @@ export function middleware(request) {
                 return NextResponse.redirect(url);
             }
         } catch (error) {
-            return NextResponse.redirect(new URL("/login", request.url));
+            // Malformed token -> treat as guest
+            const url = new URL("/login", request.url);
+            url.searchParams.set("redirect", pathname);
+            return NextResponse.redirect(url);
         }
     }
 
@@ -50,7 +72,23 @@ export function middleware(request) {
             const payloadBase64 = authCookie.value.split(".")[1];
             const decodedPayload = JSON.parse(atob(payloadBase64));
 
-            if (decodedPayload.status === "restricted") {
+            // If token expired -> guest -> redirect to login
+            const exp = decodedPayload.exp;
+            const nowSec = Math.floor(Date.now() / 1000);
+            const tokenExpired = exp && Number(exp) > 0 ? Number(exp) <= nowSec : false;
+            if (tokenExpired) {
+                const url = new URL("/login", request.url);
+                url.searchParams.set("redirect", pathname);
+                return NextResponse.redirect(url);
+            }
+
+            const ROOT_SUPER2 = process.env.ROOT_SUPER_ADMIN_EMAIL
+                ? process.env.ROOT_SUPER_ADMIN_EMAIL.toLowerCase().trim()
+                : null;
+            const isRootEmail2 = decodedPayload.email && ROOT_SUPER2 && decodedPayload.email.toLowerCase() === ROOT_SUPER2;
+            const isRootFlag2 = decodedPayload.isRootSuperAdmin === true;
+
+            if (decodedPayload.status === "restricted" && !isRootEmail2 && !isRootFlag2) {
                 return NextResponse.redirect(new URL("/restricted", request.url));
             }
 
@@ -66,6 +104,7 @@ export function middleware(request) {
             }
         } catch (error) {
             const url = new URL("/login", request.url);
+            url.searchParams.set("redirect", pathname);
             return NextResponse.redirect(url);
         }
     }
@@ -93,10 +132,26 @@ export function middleware(request) {
             try {
                 const payloadBase64 = authCookie.value.split(".")[1];
                 const decodedPayload = JSON.parse(atob(payloadBase64));
-                if (decodedPayload.status === "restricted") {
+
+                // If token expired -> treat as guest: allow access to auth pages
+                const exp = decodedPayload.exp;
+                const nowSec = Math.floor(Date.now() / 1000);
+                const tokenExpired = exp && Number(exp) > 0 ? Number(exp) <= nowSec : false;
+                if (tokenExpired) {
+                    return NextResponse.next();
+                }
+
+                const ROOT_SUPER3 = process.env.ROOT_SUPER_ADMIN_EMAIL
+                    ? process.env.ROOT_SUPER_ADMIN_EMAIL.toLowerCase().trim()
+                    : null;
+                const isRootEmail3 = decodedPayload.email && ROOT_SUPER3 && decodedPayload.email.toLowerCase() === ROOT_SUPER3;
+                const isRootFlag3 = decodedPayload.isRootSuperAdmin === true;
+                if (decodedPayload.status === "restricted" && !isRootEmail3 && !isRootFlag3) {
                     return NextResponse.redirect(new URL("/restricted", request.url));
                 }
-            } catch (e) {}
+            } catch (e) {
+                return NextResponse.next();
+            }
             return NextResponse.redirect(new URL("/dashboard", request.url));
         }
     }

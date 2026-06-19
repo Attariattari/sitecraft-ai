@@ -2,6 +2,8 @@
 import "./globals.css";
 import { AppLoaderProvider } from "@/components/providers/AppLoaderProvider";
 import { UserProvider } from "@/context/UserContext";
+import { RealtimeProvider } from "@/components/providers/RealtimeProvider";
+import ScrollProgress from "@/components/shared/ScrollProgress";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,7 +57,12 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
       >
         <UserProvider>
-          <AppLoaderProvider>{children}</AppLoaderProvider>
+          <RealtimeProvider>
+            <div className="site-scroll">
+              <AppLoaderProvider>{children}</AppLoaderProvider>
+              <ScrollProgress />
+            </div>
+          </RealtimeProvider>
         </UserProvider>
       </body>
     </html>

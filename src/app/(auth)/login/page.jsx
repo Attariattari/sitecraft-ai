@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -9,6 +10,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { loginSchema } from "@/lib/validations/authValidation";
 
 export default function LoginPage() {
+  const { setUser } = useUser();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState("");
@@ -54,6 +56,23 @@ export default function LoginPage() {
           setIsUnverified(true);
         }
         return;
+      }
+
+      // Set user in context and broadcast login to other tabs
+      try {
+        if (result.user && setUser) setUser(result.user);
+      } catch (e) {
+        // ignore
+      }
+
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        try {
+          const bc = new BroadcastChannel("sitecraft-auth");
+          bc.postMessage({ type: "login", payload: result.user || null });
+          bc.close();
+        } catch (e) {
+          console.warn("BroadcastChannel broadcast failed:", e);
+        }
       }
 
       router.push("/dashboard");

@@ -281,4 +281,50 @@
     .dark .site-badge-orange {
         @apply bg-accent/10 text-accent border-accent/30;
     }
+
+    /* Hide native scrollbars but keep scrolling functional where possible.
+       Note: some OS/user settings (e.g. Windows "always show scrollbars") can force visible scrollbars.
+    */
+    *, *::before, *::after {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+    *::-webkit-scrollbar {
+        width: 0 !important;
+        height: 0 !important;
+        background: transparent;
+    }
+
+    /* Scroll progress bar container */
+    .scroll-progress-container {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 4px;
+        pointer-events: none;
+        z-index: 99999;
+        background: transparent;
+    }
+
+    .scroll-progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--color-primary, var(--primary)) 0%, var(--color-primary-dark, var(--primary-dark)) 100%);
+        transition: width 120ms linear;
+        transform-origin: left center;
+    }
+
+    /* Per-container scroll hiding for inner scroll wrapper */
+    .site-scroll {
+        height: 100vh;
+        overflow-y: auto;
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+    .site-scroll::-webkit-scrollbar {
+        width: 0 !important;
+        height: 0 !important;
+        background: transparent;
+    }
 }

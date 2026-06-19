@@ -12,7 +12,7 @@ if (!JWT_SECRET) {
 
 const secret = JWT_SECRET || "fallback_dev_secret_only";
 
-export function signAuthToken(user) {
+export function signAuthToken(user, expiresIn = "7d") {
     const payload = {
         userId: user._id.toString(),
         email: user.email,
@@ -23,7 +23,7 @@ export function signAuthToken(user) {
         status: user.status || "active",
     };
 
-    return jwt.sign(payload, secret, { expiresIn: "7d" });
+    return jwt.sign(payload, secret, { expiresIn });
 }
 
 export function verifyAuthToken(token) {

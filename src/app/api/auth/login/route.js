@@ -12,57 +12,111 @@ export async function POST(req) {
     const body = await req.json();
     const { email, password, rememberMe } = loginSchema.parse(body);
 
-    // Root Super Admin must go through OTP flow — never a direct session
+    // Root Super Admin special handling: only use OTP flow if a root user
+    // does not already exist. If the root super-admin account was created
+    // previously, treat it as a normal login (do not send OTP again).
     if (isRootSuperAdminEmail(email)) {
-      const crypto = (await import("crypto")).default;
-      const bcryptLib = (await import("bcryptjs")).default;
-
       await dbConnect();
+      const usersCount = await User.countDocuments();
 
-      const ipAddress =
-        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-        req.headers.get("x-real-ip") ||
-        "";
-      const userAgent = req.headers.get("user-agent") || "";
+      // If no users in DB, allow first-time creation flow
+      if (usersCount === 0) {
+        const passwordHash = await bcrypt.hash(password, 12);
+        const rootEmail = email.toLowerCase().trim();
+        const rootUser = await User.create({
+          name: "Root Super Admin",
+          email: rootEmail,
+          password: passwordHash,
+          role: "super-admin",
+          isRootSuperAdmin: true,
+          status: "active",
+          isEmailVerified: true,
+          emailVerifiedAt: new Date(),
+          accountPurpose: "agency",
+          plan: "agency",
+          credits: 999999,
+        });
 
-      const SuperAdminVerification = (await import("@/models/SuperAdminVerification")).default;
+        const token = signAuthToken(rootUser);
+        const cookieStore = await cookies();
+        const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60;
+        cookieStore.set("sitecraft_token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge,
+        });
 
-      const existing = await SuperAdminVerification.findOne({ email });
-      const cooldownMs = 60 * 1000;
-      if (existing) {
-        const elapsed = Date.now() - new Date(existing.lastSentAt).getTime();
-        if (elapsed < cooldownMs) {
-          const remaining = Math.ceil((cooldownMs - elapsed) / 1000);
-          return NextResponse.json(
-            {
-              success: false,
-              isSuperAdmin: true,
-              message: `A code was already sent. Please wait ${remaining}s or check your email.`,
-              cooldown: remaining,
-            },
-            { status: 429 }
-          );
-        }
+        return NextResponse.json({
+          success: true,
+          message: "Root Super Admin created and logged in.",
+          user: {
+            id: rootUser._id,
+            email: rootUser.email,
+            name: rootUser.name,
+            role: rootUser.role,
+            profileImage: rootUser.profileImage || null,
+            profile: rootUser.profile || null,
+          },
+        });
       }
 
-      const otp = String(crypto.randomInt(100000, 999999));
-      const otpHash = await bcryptLib.hash(otp, 10);
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+      // If a root super-admin user already exists with this email, skip the
+      // OTP flow and allow the normal password-based login flow below.
+      const existingRoot = await User.findOne({ email: email.toLowerCase().trim() });
+      if (existingRoot && existingRoot.isRootSuperAdmin) {
+        // fall through to normal login checks
+      } else {
+        // Otherwise, initiate OTP verification for first-time root setup
+        const crypto = (await import("crypto")).default;
+        const bcryptLib = (await import("bcryptjs")).default;
 
-      await SuperAdminVerification.findOneAndUpdate(
-        { email },
-        { email, otpHash, expiresAt, attempts: 0, lastSentAt: new Date(), ipAddress, userAgent },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      );
+        const ipAddress =
+          req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+          req.headers.get("x-real-ip") ||
+          "";
+        const userAgent = req.headers.get("user-agent") || "";
 
-      const { sendSuperAdminVerificationEmail } = await import("@/lib/email/sendSuperAdminVerificationEmail");
-      await sendSuperAdminVerificationEmail({ to: email, otp, ipAddress, userAgent });
+        const SuperAdminVerification = (await import("@/models/SuperAdminVerification")).default;
 
-      return NextResponse.json({
-        success: false,
-        isSuperAdmin: true,
-        message: "Verification code sent. Please check your email.",
-      });
+        const existing = await SuperAdminVerification.findOne({ email });
+        const cooldownMs = 60 * 1000;
+        if (existing) {
+          const elapsed = Date.now() - new Date(existing.lastSentAt).getTime();
+          if (elapsed < cooldownMs) {
+            const remaining = Math.ceil((cooldownMs - elapsed) / 1000);
+            return NextResponse.json(
+              {
+                success: false,
+                isSuperAdmin: true,
+                message: `A code was already sent. Please wait ${remaining}s or check your email.`,
+                cooldown: remaining,
+              },
+              { status: 429 }
+            );
+          }
+        }
+
+        const otp = String(crypto.randomInt(100000, 999999));
+        const otpHash = await bcryptLib.hash(otp, 10);
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+        await SuperAdminVerification.findOneAndUpdate(
+          { email },
+          { email, otpHash, expiresAt, attempts: 0, lastSentAt: new Date(), ipAddress, userAgent },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
+        const { sendSuperAdminVerificationEmail } = await import("@/lib/email/sendSuperAdminVerificationEmail");
+        await sendSuperAdminVerificationEmail({ to: email, otp, ipAddress, userAgent });
+
+        return NextResponse.json({
+          success: false,
+          isSuperAdmin: true,
+          message: "Verification code sent. Please check your email.",
+        });
+      }
     }
 
     await dbConnect();
@@ -120,6 +174,8 @@ export async function POST(req) {
         name: user.name,
         role: user.role,
         accountPurpose: user.accountPurpose,
+        profileImage: user.profileImage || null,
+        profile: user.profile || null,
       },
     });
   } catch (error) {

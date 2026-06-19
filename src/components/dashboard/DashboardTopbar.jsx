@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/context/UserContext";
+import { useRealtime } from "@/components/providers/RealtimeProvider";
+import { Info, ShieldCheck, ExternalLink } from "lucide-react";
 
 const pageTitles = {
   "/dashboard": "Overview",
@@ -60,6 +62,17 @@ function UserMenu() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+      // Notify other tabs immediately
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        try {
+          const bc = new BroadcastChannel("sitecraft-auth");
+          bc.postMessage({ type: "logout" });
+          bc.close();
+        } catch (e) {
+          console.warn("BroadcastChannel broadcast failed:", e);
+        }
+      }
+
       setUser(null);
       router.push("/login");
     } catch (err) {
@@ -74,6 +87,8 @@ function UserMenu() {
         .join("")
         .toUpperCase()
     : "U";
+
+  const isAdmin = user.role === "admin" || user.role === "super-admin";
 
   return (
     <div className="relative">
@@ -131,6 +146,16 @@ function UserMenu() {
                 </p>
               </div>
               <div className="space-y-1">
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-primary rounded-xl hover:bg-primary/10 transition-colors"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Admin Panel
+                  </Link>
+                )}
                 <Link
                   href="/dashboard/profile"
                   onClick={() => setOpen(false)}
@@ -157,6 +182,113 @@ function UserMenu() {
                   Sign Out
                 </button>
               </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function DashboardNotificationDropdown() {
+  const { notifications, unreadCount, markAllRead } = useRealtime();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="relative p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+      >
+        <Bell className="w-5 h-5" />
+        {unreadCount > 0 && (
+          <span className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full bg-primary text-[10px] text-primary-foreground font-black flex items-center justify-center ring-2 ring-card shadow-lg">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-2xl shadow-2xl z-20 overflow-hidden flex flex-col max-h-[480px]"
+            >
+              <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
+                <h3 className="text-sm font-bold text-foreground">
+                  Notifications
+                </h3>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllRead}
+                    className="text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
+
+              <div className="overflow-y-auto py-1 custom-scrollbar">
+                {notifications.length === 0 ? (
+                  <div className="p-10 text-center">
+                    <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 text-muted-foreground/50">
+                      <Bell className="w-6 h-6" />
+                    </div>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      No notifications yet
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n._id}
+                      className={cn(
+                        "p-3.5 border-b border-border/50 hover:bg-muted/30 transition-colors last:border-0",
+                        !n.read && "bg-primary/5 border-l-2 border-l-primary",
+                      )}
+                    >
+                      <div className="flex gap-3">
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                            n.type.includes("restrict")
+                              ? "bg-destructive/10 text-destructive"
+                              : "bg-primary/10 text-primary",
+                          )}
+                        >
+                          <Info className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-foreground truncate">
+                            {n.title}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                            {n.message}
+                          </p>
+                          <p className="text-[9px] text-muted-foreground/60 mt-1.5 font-medium uppercase tracking-wider">
+                            {new Date(n.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <Link
+                href="/dashboard/notifications"
+                onClick={() => setOpen(false)}
+                className="p-3 text-center border-t border-border text-[11px] font-bold text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
+              >
+                View all notifications
+              </Link>
             </motion.div>
           </>
         )}
@@ -213,10 +345,7 @@ export function DashboardTopbar() {
       </Link>
 
       {/* Notifications */}
-      <button className="relative p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
-        <Bell className="w-5 h-5" />
-        <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-accent ring-2 ring-card" />
-      </button>
+      <DashboardNotificationDropdown />
 
       {/* Theme toggle */}
       <ThemeToggle />

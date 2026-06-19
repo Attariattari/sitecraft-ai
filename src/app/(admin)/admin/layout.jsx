@@ -22,7 +22,10 @@ export default async function AdminLayout({ children }) {
   }
 
   if (user.status === "restricted" || user.status === "suspended") {
-    redirect("/dashboard");
+    // Allow Root Super Admin to bypass accidental restriction
+    if (!user.isRootSuperAdmin) {
+      redirect("/dashboard");
+    }
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 import Link from "next/link";
 import { Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
 
@@ -17,6 +18,8 @@ function VerifySuperAdminForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
+
+  const { setUser } = useUser();
 
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -80,6 +83,19 @@ function VerifySuperAdminForm() {
         setCode(["", "", "", "", "", ""]);
         inputRefs.current[0]?.focus();
         return;
+      }
+      // set user in context and broadcast login
+      try {
+        if (result.user) setUser(result.user);
+      } catch (e) {}
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        try {
+          const bc = new BroadcastChannel("sitecraft-auth");
+          bc.postMessage({ type: "login", payload: result.user || null });
+          bc.close();
+        } catch (e) {
+          console.warn("BroadcastChannel broadcast failed:", e);
+        }
       }
       router.push("/admin");
     } catch {

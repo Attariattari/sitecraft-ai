@@ -130,9 +130,9 @@ const UserSchema = new mongoose.Schema({
 UserSchema.index({ createdAt: -1 });
 
 // Protect Root Super Admin from being modified
-UserSchema.pre("save", function(next) {
+UserSchema.pre("save", async function() {
     const ROOT_EMAIL = process.env.ROOT_SUPER_ADMIN_EMAIL;
-    if (!ROOT_EMAIL) return next();
+    if (!ROOT_EMAIL) return;
 
     const isRootEmail =
         this.email.toLowerCase().trim() === ROOT_EMAIL.toLowerCase().trim();
@@ -144,14 +144,17 @@ UserSchema.pre("save", function(next) {
         this.status = "active";
     }
 
-    next();
+    // Super admins always get at least "pro" plan — never free or basic
+    if (this.role === "super-admin" && ["free", "basic"].includes(this.plan)) {
+        this.plan = "pro";
+    }
 });
 
 // Prevent Root Super Admin from being deleted
-UserSchema.pre(["findOneAndDelete", "findOneAndRemove"], async function(next) {
+UserSchema.pre(["findOneAndDelete", "findOneAndRemove"], async function() {
     const query = this.getQuery();
     const ROOT_EMAIL = process.env.ROOT_SUPER_ADMIN_EMAIL;
-    if (!ROOT_EMAIL) return next();
+    if (!ROOT_EMAIL) return;
 
     const user = await this.model.findOne(query);
     if (
@@ -161,7 +164,6 @@ UserSchema.pre(["findOneAndDelete", "findOneAndRemove"], async function(next) {
     ) {
         throw new Error("Root Super Admin cannot be deleted.");
     }
-    next();
 });
 
 // Ensure we don't accidentally leak the password
@@ -173,6 +175,11 @@ UserSchema.methods.toJSON = function() {
     delete obj.__v;
     return obj;
 };
+
+// In development, always delete the cached model to prevent stale hooks from HMR
+if (process.env.NODE_ENV !== "production" && mongoose.models.User) {
+    delete mongoose.models.User;
+}
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 

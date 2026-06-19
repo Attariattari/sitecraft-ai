@@ -6,11 +6,10 @@ import {
     isRootSuperAdminEmail,
     assertNotRootSuperAdminTarget,
 } from "@/lib/auth/rootSuperAdmin";
-import {
-    createActivityLog,
-    createNotification,
-} from "@/lib/admin/adminHelpers";
+import { createActivityLog } from "@/lib/admin/adminHelpers";
 import { sendRoleChangedEmail } from "@/lib/email/sendRoleChangedEmail";
+import { realtimeEmitter } from "@/lib/realtime/realtimeEmitter";
+import { REALTIME_EVENTS } from "@/lib/realtime/events";
 
 export async function PATCH(req, { params }) {
     try {
@@ -35,15 +34,17 @@ export async function PATCH(req, { params }) {
         // Role Change Rules
         assertNotRootSuperAdminTarget(targetUser);
         if (newRole === "super-admin" && !actor.isRootSuperAdmin) {
-            // Only Root can promote others to super-admin (or maybe only Root can exist?
-            // User said: "block creating extra root super-admin", "anyone -> root super-admin through UI/API"
-            // Actually, "Root Super Admin ... can promote user to admin ... can demote admin to user"
-            // "everyone -> root super-admin ... not allowed"
             return NextResponse.json({ success: false, message: "Only one Root Super Admin can exist." }, { status: 403 }, );
         }
 
         const oldRole = targetUser.role;
         targetUser.role = newRole;
+
+        // Super admins always get at least "pro" plan
+        if (newRole === "super-admin" && ["free", "basic"].includes(targetUser.plan)) {
+            targetUser.plan = "pro";
+        }
+
         await targetUser.save();
 
         // Log Activity
@@ -56,13 +57,19 @@ export async function PATCH(req, { params }) {
             req,
         });
 
-        // Create Notification
-        await createNotification({
+        // Realtime Emits & Notifications
+        await realtimeEmitter.emitToUser(
+            targetUser._id,
+            REALTIME_EVENTS.USER.ROLE_UPDATED, {
+                title: "Role Updated",
+                message: `Your account role has been changed from ${oldRole} to ${newRole}.`,
+                metadata: { oldRole, newRole },
+            },
+        );
+
+        await realtimeEmitter.emitToAdmins(REALTIME_EVENTS.ADMIN.USER_UPDATED, {
             userId: targetUser._id,
-            type: "role_change",
-            title: "Role Updated",
-            message: `Your account role has been changed from ${oldRole} to ${newRole}.`,
-            metadata: { oldRole, newRole },
+            action: "role_changed",
         });
 
         // Send Email
