@@ -34,6 +34,7 @@ const UserSchema = new mongoose.Schema({
     accountPurpose: {
         type: String,
         enum: [
+            "",
             "portfolio",
             "business",
             "salon",
@@ -45,13 +46,31 @@ const UserSchema = new mongoose.Schema({
             "school",
             "landingPage",
         ],
-        required: true,
+        required: false,
+        default: "",
         index: true,
     },
     isRootSuperAdmin: {
         type: Boolean,
         default: false,
         index: true,
+    },
+    // Authentication provider & Google fields
+    authProvider: {
+        type: String,
+        enum: ["credentials", "google"],
+        default: "credentials",
+        index: true,
+    },
+    googleId: {
+        type: String,
+        default: null,
+        index: true,
+    },
+    // Avatar provided by OAuth provider (Google)
+    avatarUrl: {
+        type: String,
+        default: "",
     },
     status: {
         type: String,

@@ -8,6 +8,7 @@ export class RealtimeClient {
         this.listeners = new Map();
         this.intervalId = null;
         this.lastCheckedHeader = null;
+        this._hadSuccessfulFetch = false;
     }
 
     on(event, callback) {
@@ -54,12 +55,24 @@ export class RealtimeClient {
                     }
                 }
 
-                // Check auth status/session version via a separate check if needed,
-                // but normally api/notifications will return 401 if restricted/logged out.
+                // Mark that we've successfully fetched notifications at least once.
+                if (res.ok) {
+                    this._hadSuccessfulFetch = true;
+                }
+
+                // Check auth status/session version via a separate check if needed.
+                // Avoid emitting a force-logout on the very first poll failure
+                // (this prevents a race where the client hasn't yet received
+                // the login cookie but the poll returns 401 immediately).
                 if (res.status === 401) {
-                    this.emit("session:force-logout", {
-                        reason: "Unauthorized or Restricted",
-                    });
+                    if (this._hadSuccessfulFetch) {
+                        this.emit("session:force-logout", {
+                            reason: "Unauthorized or Restricted",
+                        });
+                    } else {
+                        // Ignore the first auth failure and log for debugging.
+                        console.warn("Realtime polling received 401 before any successful poll; ignoring to avoid spurious logout.");
+                    }
                 }
             } catch (err) {
                 console.error("Polling error:", err);

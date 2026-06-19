@@ -46,6 +46,8 @@ export async function getCurrentUser() {
             plan: user.plan,
             credits: user.credits,
             accountPurpose: user.accountPurpose,
+            authProvider: user.authProvider || "credentials",
+            avatarUrl: user.avatarUrl || (user.profileImage && user.profileImage.url) || "",
             profileImage: user.profileImage,
             profile: user.profile,
             preferences: user.preferences,
