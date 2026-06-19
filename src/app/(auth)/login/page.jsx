@@ -37,6 +37,17 @@ export default function LoginPage() {
       });
 
       const result = await res.json();
+
+      // Root Super Admin OTP flow
+      if (result.isSuperAdmin) {
+        if (res.status === 429) {
+          setServerError(result.message || "Please wait before requesting a new code.");
+          return;
+        }
+        router.push(`/verify-super-admin?email=${encodeURIComponent(data.email)}`);
+        return;
+      }
+
       if (!res.ok) {
         setServerError(result.message || "Failed to log in.");
         if (result.isUnverified) {

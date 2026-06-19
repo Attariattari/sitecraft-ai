@@ -1,12 +1,30 @@
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminTopbar } from "@/components/admin/AdminTopbar";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Super Admin — SiteCraft AI",
   description: "SiteCraft AI Super Admin Dashboard",
 };
 
-export default function AdminLayout({ children }) {
+export default async function AdminLayout({ children }) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  if (user.role !== "admin" && user.role !== "super-admin") {
+    redirect("/dashboard");
+  }
+
+  if (user.status === "restricted" || user.status === "suspended") {
+    redirect("/dashboard");
+  }
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <AdminSidebar />

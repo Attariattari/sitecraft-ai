@@ -5,11 +5,65 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { loginSchema } from "@/lib/validations/authValidation";
 import { signAuthToken } from "@/lib/auth/tokens";
+import { isRootSuperAdminEmail } from "@/lib/auth/rootSuperAdmin";
 
 export async function POST(req) {
   try {
     const body = await req.json();
     const { email, password, rememberMe } = loginSchema.parse(body);
+
+    // Root Super Admin must go through OTP flow — never a direct session
+    if (isRootSuperAdminEmail(email)) {
+      const crypto = (await import("crypto")).default;
+      const bcryptLib = (await import("bcryptjs")).default;
+
+      await dbConnect();
+
+      const ipAddress =
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        req.headers.get("x-real-ip") ||
+        "";
+      const userAgent = req.headers.get("user-agent") || "";
+
+      const SuperAdminVerification = (await import("@/models/SuperAdminVerification")).default;
+
+      const existing = await SuperAdminVerification.findOne({ email });
+      const cooldownMs = 60 * 1000;
+      if (existing) {
+        const elapsed = Date.now() - new Date(existing.lastSentAt).getTime();
+        if (elapsed < cooldownMs) {
+          const remaining = Math.ceil((cooldownMs - elapsed) / 1000);
+          return NextResponse.json(
+            {
+              success: false,
+              isSuperAdmin: true,
+              message: `A code was already sent. Please wait ${remaining}s or check your email.`,
+              cooldown: remaining,
+            },
+            { status: 429 }
+          );
+        }
+      }
+
+      const otp = String(crypto.randomInt(100000, 999999));
+      const otpHash = await bcryptLib.hash(otp, 10);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+      await SuperAdminVerification.findOneAndUpdate(
+        { email },
+        { email, otpHash, expiresAt, attempts: 0, lastSentAt: new Date(), ipAddress, userAgent },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+
+      const { sendSuperAdminVerificationEmail } = await import("@/lib/email/sendSuperAdminVerificationEmail");
+      await sendSuperAdminVerificationEmail({ to: email, otp, ipAddress, userAgent });
+
+      return NextResponse.json({
+        success: false,
+        isSuperAdmin: true,
+        message: "Verification code sent. Please check your email.",
+      });
+    }
 
     await dbConnect();
 
