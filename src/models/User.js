@@ -140,6 +140,21 @@ const UserSchema = new mongoose.Schema({
             type: String,
             default: "",
         },
+        platformTheme: {
+            mode: {
+                type: String,
+                enum: ["light", "dark", "system"],
+                default: "",
+            },
+            lightThemeId: {
+                type: String,
+                default: "",
+            },
+            darkThemeId: {
+                type: String,
+                default: "",
+            },
+        },
     },
     resetPasswordToken: {
         type: String,

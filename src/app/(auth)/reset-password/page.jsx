@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { resetPasswordSchema } from "@/lib/validations/authValidation";
+import { SiteCraftLogo } from "@/components/common/SiteCraftLogo";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -84,6 +85,9 @@ function ResetPasswordForm() {
   return (
     <div className="w-full max-w-md bg-card border border-border/50 rounded-3xl p-8 md:p-10 shadow-xl shadow-primary/5 relative z-10 text-center">
       <div className="mb-8">
+        <div className="flex justify-center mb-4">
+          <SiteCraftLogo size="lg" href="/" />
+        </div>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
           Create new password
         </h1>

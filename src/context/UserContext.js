@@ -13,6 +13,7 @@ const UserContext = createContext();
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userTheme, setUserTheme] = useState("");
 
   const refreshUser = useCallback(async () => {
     try {
@@ -40,6 +41,8 @@ export function UserProvider({ children }) {
       const data = await res.json();
       if (data.success) {
         setUser(data.user);
+        // Load user's theme preference
+        await loadUserTheme();
       } else {
         setUser(null);
       }
@@ -51,12 +54,48 @@ export function UserProvider({ children }) {
     }
   }, []);
 
+  const loadUserTheme = useCallback(async () => {
+    try {
+      const res = await fetch("/api/user/theme-preference");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.themeId) {
+          setUserTheme(data.themeId);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load user theme:", error);
+    }
+  }, []);
+
+  const updateUserTheme = useCallback(async (themeId) => {
+    try {
+      const res = await fetch("/api/user/theme-preference", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ themeId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setUserTheme(themeId);
+          // Update user in context
+          if (data.user) {
+            setUser(data.user);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update user theme:", error);
+    }
+  }, []);
+
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
 
   return (
-    <UserContext.Provider value={{ user, setUser, loading, refreshUser }}>
+    <UserContext.Provider value={{ user, setUser, loading, refreshUser, userTheme, setUserTheme, updateUserTheme }}>
       {" "}
       {children}{" "}
     </UserContext.Provider>

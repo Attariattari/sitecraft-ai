@@ -2,7 +2,6 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles,
   Menu,
   X,
   ArrowRight,
@@ -19,6 +18,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { SiteCraftLogo } from "@/components/common/SiteCraftLogo";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -200,17 +200,7 @@ export function Navbar() {
     >
       <div className="container mx-auto px-6 h-[72px] flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative size-9">
-            <div className="absolute inset-0 rounded-xl bg-primary/30 blur-md group-hover:blur-lg transition-all duration-300" />
-            <div className="relative size-9 rounded-xl site-primary-button flex items-center justify-center shadow-lg shadow-primary/30">
-              <Sparkles className="size-[18px]" />
-            </div>
-          </div>
-          <span className="text-[1.2rem] font-extrabold tracking-tight text-foreground">
-            SiteCraft <span className="text-primary">AI</span>
-          </span>
-        </Link>
+        <SiteCraftLogo size="md" href="/" />
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1">

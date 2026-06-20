@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { forgotPasswordSchema } from "@/lib/validations/authValidation";
+import { SiteCraftLogo } from "@/components/common/SiteCraftLogo";
 
 export default function ForgotPasswordPage() {
   const [message, setMessage] = useState("");
@@ -57,6 +58,9 @@ export default function ForgotPasswordPage() {
         </Link>
 
         <div className="mt-6 mb-8 text-center">
+          <div className="flex justify-center mb-4">
+            <SiteCraftLogo size="lg" href="/" />
+          </div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
             Reset Password
           </h1>

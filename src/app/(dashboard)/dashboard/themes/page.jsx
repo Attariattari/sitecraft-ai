@@ -28,7 +28,7 @@ const PURPOSES = [
 ];
 
 export default function ThemesPage() {
-  const { user } = useUser();
+  const { user, updateUserTheme } = useUser();
   const [themes, setThemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPurpose, setSelectedPurpose] = useState("");
@@ -111,20 +111,10 @@ export default function ThemesPage() {
   async function handleSetDefaultTheme(themeId) {
     try {
       setSettingDefault(true);
-      const res = await fetch("/api/user/theme-preference", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ themeId }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setDefaultThemeId(themeId);
-        setIsPreviewOpen(false);
-        setToastMessage("Default theme saved");
-      } else {
-        setToastMessage(data.message || "Failed to save theme");
-      }
+      await updateUserTheme(themeId);
+      setDefaultThemeId(themeId);
+      setIsPreviewOpen(false);
+      setToastMessage("Default theme saved ✓");
     } catch (error) {
       console.error("Failed to set default theme:", error);
       setToastMessage("Failed to save theme");

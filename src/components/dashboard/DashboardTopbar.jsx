@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/context/UserContext";
+import { usePlatformTheme } from "@/hooks/usePlatformTheme";
 import { useRealtime } from "@/components/providers/RealtimeProvider";
 import { Info, ShieldCheck, ExternalLink } from "lucide-react";
 
@@ -34,20 +35,19 @@ const pageTitles = {
 };
 
 function ThemeToggle() {
-  const [dark, setDark] = useState(false);
+  const { isDark, toggleTheme, mounted } = usePlatformTheme();
+  const { user } = useUser();
 
-  const toggle = () => {
-    setDark(!dark);
-    document.documentElement.classList.toggle("dark");
-  };
+  if (!mounted) return null;
 
   return (
     <button
-      onClick={toggle}
+      onClick={() => toggleTheme(user)}
       className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
       aria-label="Toggle theme"
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
-      {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
     </button>
   );
 }

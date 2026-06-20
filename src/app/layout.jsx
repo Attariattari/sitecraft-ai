@@ -3,6 +3,7 @@ import "./globals.css";
 import { AppLoaderProvider } from "@/components/providers/AppLoaderProvider";
 import { UserProvider } from "@/context/UserContext";
 import { RealtimeProvider } from "@/components/providers/RealtimeProvider";
+import { PlatformThemeProvider } from "@/components/providers/PlatformThemeProvider";
 import ScrollProgress from "@/components/shared/ScrollProgress";
 import { Toaster } from "sonner";
 
@@ -39,6 +40,11 @@ export const metadata = {
     "SaaS",
     "portfolio builder",
   ],
+  icons: {
+    icon: "https://res.cloudinary.com/dg5gwixf1/image/upload/v1781974506/SiteCraft-AI/Web%20Logo/ChatGPT_Image_Jun_20_2026_09_50_48_AM_sanrrw.png",
+    shortcut: "https://res.cloudinary.com/dg5gwixf1/image/upload/v1781974506/SiteCraft-AI/Web%20Logo/ChatGPT_Image_Jun_20_2026_09_50_48_AM_sanrrw.png",
+    apple: "https://res.cloudinary.com/dg5gwixf1/image/upload/v1781974506/SiteCraft-AI/Web%20Logo/ChatGPT_Image_Jun_20_2026_09_50_48_AM_sanrrw.png",
+  },
   openGraph: {
     title: "SiteCraft AI - Build Beautiful Websites with AI",
     description: "From idea to live website in under 2 minutes. Powered by AI.",
@@ -59,12 +65,14 @@ export default function RootLayout({ children }) {
       >
         <Toaster richColors position="top-right" />
         <UserProvider>
-          <RealtimeProvider>
-            <div className="site-scroll">
-              <AppLoaderProvider>{children}</AppLoaderProvider>
-              <ScrollProgress />
-            </div>
-          </RealtimeProvider>
+          <PlatformThemeProvider>
+            <RealtimeProvider>
+              <div className="site-scroll">
+                <AppLoaderProvider>{children}</AppLoaderProvider>
+                <ScrollProgress />
+              </div>
+            </RealtimeProvider>
+          </PlatformThemeProvider>
         </UserProvider>
       </body>
     </html>

@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { loginSchema } from "@/lib/validations/authValidation";
+import { SiteCraftLogo } from "@/components/common/SiteCraftLogo";
 
 export default function LoginPage() {
   const { setUser } = useUser();
@@ -101,14 +102,9 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md bg-card border border-border/50 rounded-3xl p-8 md:p-10 shadow-xl shadow-primary/5 relative z-10">
         <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <span className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-white font-bold text-sm">S</span>
-            </span>
-            <span className="text-2xl font-black text-foreground tracking-tight">
-              SiteCraft AI
-            </span>
-          </Link>
+          <div className="flex justify-center mb-6">
+            <SiteCraftLogo size="lg" href="/" />
+          </div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
             Welcome back
           </h1>

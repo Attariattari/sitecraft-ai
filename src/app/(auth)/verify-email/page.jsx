@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ArrowLeft, Mail } from "lucide-react";
+import { SiteCraftLogo } from "@/components/common/SiteCraftLogo";
 
 function VerifyEmailForm() {
   const router = useRouter();
@@ -128,6 +129,10 @@ function VerifyEmailForm() {
 
       <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-primary">
         <Mail className="w-8 h-8" />
+      </div>
+
+      <div className="flex justify-center mb-4">
+        <SiteCraftLogo size="lg" href="/" />
       </div>
 
       <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-3">

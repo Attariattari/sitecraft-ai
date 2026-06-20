@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Globe,
-  Sparkles,
   BarChart3,
   CreditCard,
   ShoppingBag,
@@ -21,10 +20,12 @@ import {
   ArrowUpRight,
   Zap,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useUser } from "@/context/UserContext";
+import { SiteCraftLogo } from "@/components/common/SiteCraftLogo";
 
 const navGroups = [
   {
@@ -159,10 +160,8 @@ function SidebarContent({ collapsed, onClose }) {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-border shrink-0">
-        <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center shadow-lg shadow-primary/25">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
+        <div className="flex items-center gap-2.5">
+          <SiteCraftLogo size="sm" href="/dashboard" />
           {!collapsed && (
             <div>
               <span className="text-sm font-bold tracking-tight text-foreground">
@@ -174,7 +173,7 @@ function SidebarContent({ collapsed, onClose }) {
               </span>
             </div>
           )}
-        </Link>
+        </div>
         {onClose && (
           <button
             onClick={onClose}

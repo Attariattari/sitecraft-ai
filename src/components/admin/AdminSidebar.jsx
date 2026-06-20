@@ -47,12 +47,12 @@ import {
   Menu,
   X,
   ChevronDown,
-  Sparkles,
   ArrowUpRight,
   ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/context/UserContext";
+import { SiteCraftLogo } from "@/components/common/SiteCraftLogo";
 
 const navGroups = [
   {
@@ -168,6 +168,7 @@ const navGroups = [
       { name: "Feature Flags", href: "/admin/feature-flags", icon: Flag },
       { name: "Reports", href: "/admin/reports", icon: ClipboardList },
       { name: "Backups", href: "/admin/backups", icon: HardDrive },
+      { name: "Platform Theme", href: "/admin/platform-theme", icon: Palette },
       { name: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },
@@ -200,10 +201,8 @@ function SidebarContent({ onClose }) {
     <div className="flex flex-col h-full overflow-hidden">
       {/* Logo */}
       <div className="flex items-center justify-between px-5 h-16 border-b border-border shrink-0">
-        <Link href="/admin" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center shadow-lg shadow-primary/25">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
+        <div className="flex items-center gap-2.5">
+          <SiteCraftLogo size="sm" href="/admin" />
           <div>
             <span className="text-sm font-bold tracking-tight text-foreground">
               SiteCraft
@@ -213,7 +212,7 @@ function SidebarContent({ onClose }) {
               AI
             </span>
           </div>
-        </Link>
+        </div>
         {onClose && (
           <button
             onClick={onClose}

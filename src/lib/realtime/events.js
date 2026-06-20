@@ -20,6 +20,9 @@ export const REALTIME_EVENTS = {
         UPDATED: "theme:updated",
         LIST_REFRESH: "theme:list-refresh",
     },
+    PLATFORM_THEME: {
+        UPDATED: "platform-theme:updated",
+    },
     NOTIFICATION: {
         NEW: "notification:new",
     },

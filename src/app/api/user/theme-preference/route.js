@@ -5,6 +5,45 @@ import User from "@/models/User";
 import { isThemeSelectable } from "@/lib/themes/themeService";
 
 /**
+ * GET /api/user/theme-preference
+ * 
+ * Get the user's theme preference
+ * 
+ * Response:
+ * {
+ *   success: true,
+ *   themeId: "emerald"
+ * }
+ */
+export async function GET(req) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    await dbConnect();
+    const dbUser = await User.findById(user.id).select("preferences.defaultThemeId");
+    
+    const themeId = dbUser?.preferences?.defaultThemeId || "";
+
+    return NextResponse.json({
+      success: true,
+      themeId,
+    });
+  } catch (error) {
+    console.error("GET theme preference error:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * PATCH /api/user/theme-preference
  * 
  * Set the user's default theme preference for future generated websites
