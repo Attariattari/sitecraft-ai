@@ -511,6 +511,14 @@ export default function PersonalInfoPage() {
     "address",
   ];
 
+  if (
+    activePurposeConfig &&
+    !activePurposeSection &&
+    activePurposeConfig.sections?.length > 0
+  ) {
+    setActivePurposeSection(activePurposeConfig.sections[0].sectionId);
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 pb-20">
       {/* HEADER */}

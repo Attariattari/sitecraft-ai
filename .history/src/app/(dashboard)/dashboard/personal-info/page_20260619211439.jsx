@@ -27,8 +27,6 @@ import {
   RotateCcw,
   Sparkles,
   ChevronRight,
-  ChevronDown,
-  ChevronUp,
   Globe,
   Phone,
   Mail,
@@ -37,7 +35,6 @@ import {
   Layout,
   LayoutPanelLeft,
   Loader2,
-  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -55,6 +52,19 @@ const ICON_MAP = {
   MonitorPlay,
 };
 
+const SHARED_FIELDS = [
+  { name: "fullName", label: "Full Name", type: "text", required: true },
+  { name: "displayName", label: "Display Name / Brand Name", type: "text" },
+  { name: "email", label: "Primary Email", type: "email" },
+  { name: "phone", label: "Phone Number", type: "phone" },
+  { name: "whatsapp", label: "WhatsApp Number", type: "phone" },
+  { name: "location", label: "Address / Location", type: "text" },
+  { name: "websiteUrl", label: "Existing Website", type: "url" },
+  { name: "bio", label: "Short Bio / Company Slogan", type: "textarea" },
+  { name: "profileImage", label: "Profile Image URL", type: "url" },
+  { name: "brandLogo", label: "Brand Logo URL", type: "url" },
+];
+
 const SOCIAL_LINKS = [
   "linkedin",
   "github",
@@ -63,44 +73,6 @@ const SOCIAL_LINKS = [
   "x",
   "youtube",
   "tiktok",
-];
-
-const SHARED_SECTIONS_CONFIG = [
-  {
-    id: "identity",
-    title: "Primary Brand Identity",
-    description:
-      "Your official name, logo, and professional bio used globally.",
-    icon: User,
-    fields: [
-      { name: "fullName", label: "Full Name", type: "text", required: true },
-      { name: "displayName", label: "Display Name / Brand Name", type: "text" },
-      { name: "profileImage", label: "Profile Image URL", type: "url" },
-      { name: "brandLogo", label: "Brand Logo URL", type: "url" },
-      { name: "bio", label: "Short Bio / Company Slogan", type: "textarea" },
-    ],
-  },
-  {
-    id: "contact",
-    title: "Global Contact Details",
-    description: "Public contact information displayed on your websites.",
-    icon: Phone,
-    fields: [
-      { name: "email", label: "Public Email", type: "email" },
-      { name: "phone", label: "Phone Number", type: "phone" },
-      { name: "whatsapp", label: "WhatsApp Number", type: "phone" },
-      { name: "location", label: "Business Location", type: "text" },
-      { name: "websiteUrl", label: "Existing Website", type: "url" },
-      { name: "address", label: "Physical Address", type: "textarea" },
-    ],
-  },
-  {
-    id: "social",
-    title: "Social Presence",
-    description: "Links to your social media profiles.",
-    icon: Globe,
-    isSocial: true,
-  },
 ];
 
 // ─────────────────────────────────────────────
@@ -309,77 +281,6 @@ function RepeaterField({ field, value, onChange }) {
 }
 
 // ─────────────────────────────────────────────
-// COMPONENT: ACCORDION SECTION
-// ─────────────────────────────────────────────
-function AccordionSection({
-  id,
-  title,
-  description,
-  icon: Icon,
-  isOpen,
-  onToggle,
-  children,
-}) {
-  return (
-    <div
-      className={cn(
-        "bg-card border border-border rounded-3xl overflow-hidden shadow-sm transition-all duration-300 mb-4",
-        isOpen ? "ring-2 ring-primary/20 bg-background" : "hover:bg-muted/30",
-      )}
-    >
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
-      >
-        <div className="flex items-center gap-4">
-          <div
-            className={cn(
-              "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300",
-              isOpen
-                ? "bg-primary text-primary-foreground scale-110"
-                : "bg-muted text-muted-foreground",
-            )}
-          >
-            <Icon className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-foreground leading-none">
-              {title}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
-          </div>
-        </div>
-        <div
-          className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center bg-muted transition-all duration-300",
-            isOpen
-              ? "bg-primary/10 text-primary rotate-180"
-              : "text-muted-foreground",
-          )}
-        >
-          <ChevronDown className="w-4 h-4" />
-        </div>
-      </button>
-
-      <div
-        className={cn(
-          "grid transition-all duration-500 ease-in-out",
-          isOpen
-            ? "grid-rows-[1fr] opacity-100"
-            : "grid-rows-[0fr] opacity-0 pointer-events-none",
-        )}
-      >
-        <div className="overflow-hidden">
-          <div className="p-8 pt-0 border-t border-border/50 animate-in fade-in slide-in-from-top-4 duration-500">
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
 // MAIN PAGE
 // ─────────────────────────────────────────────
 export default function PersonalInfoPage() {
@@ -387,8 +288,8 @@ export default function PersonalInfoPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState(null); // Purpose ID
-  const [expandedSection, setExpandedSection] = useState("identity");
+  const [activeTab, setActiveTab] = useState("shared"); // "shared" or purpose ID
+  const [activePurposeSection, setActivePurposeSection] = useState(null);
 
   const [sharedData, setSharedData] = useState({});
   const [purposeData, setPurposeData] = useState({});
@@ -406,11 +307,6 @@ export default function PersonalInfoPage() {
           return;
         }
         setUser(meData.user);
-
-        const selected = getUserSelectedPurposes(meData.user);
-        if (selected.length > 0 && !activeTab) {
-          setActiveTab(selected[0]);
-        }
 
         const res = await fetch("/api/user/personal-info");
         const data = await res.json();
@@ -511,6 +407,14 @@ export default function PersonalInfoPage() {
     "address",
   ];
 
+  if (
+    activePurposeConfig &&
+    !activePurposeSection &&
+    activePurposeConfig.sections?.length > 0
+  ) {
+    setActivePurposeSection(activePurposeConfig.sections[0].sectionId);
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 pb-20">
       {/* HEADER */}
@@ -520,7 +424,7 @@ export default function PersonalInfoPage() {
             Personal Info System
           </h1>
           <p className="text-muted-foreground mt-2">
-            Configure your professional data for AI website generation.
+            Manage your shared brand identity and specialized website purposes.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -534,7 +438,7 @@ export default function PersonalInfoPage() {
             ) : (
               <Save className="w-4 h-4" />
             )}
-            Save All Changes
+            Save Changes
           </button>
         </div>
       </div>
@@ -558,13 +462,26 @@ export default function PersonalInfoPage() {
       )}
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* SIDEBAR PURPOSES */}
+        {/* SIDEBAR TABS */}
         <aside className="w-full lg:w-72 shrink-0">
           <div className="bg-card border border-border rounded-2xl p-2 sticky top-6">
             <div className="flex flex-col gap-1">
-              <div className="px-4 py-2 mb-1">
+              <button
+                onClick={() => setActiveTab("shared")}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all",
+                  activeTab === "shared"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Settings2 className="w-5 h-5" />
+                Global Shared Info
+              </button>
+
+              <div className="my-2 px-4 py-2">
                 <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                  Active Purposes
+                  Selected Purposes
                 </span>
               </div>
 
@@ -575,7 +492,12 @@ export default function PersonalInfoPage() {
                 return (
                   <button
                     key={pid}
-                    onClick={() => setActiveTab(pid)}
+                    onClick={() => {
+                      setActiveTab(pid);
+                      if (config.sections?.length > 0) {
+                        setActivePurposeSection(config.sections[0].sectionId);
+                      }
+                    }}
                     className={cn(
                       "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all",
                       IsActive
@@ -586,7 +508,7 @@ export default function PersonalInfoPage() {
                     <Icon className="w-5 h-5" />
                     {config.label}
                     {user?.primaryPurpose === pid && (
-                      <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <div className="ml-auto w-2 h-2 rounded-full bg-emerald-500" />
                     )}
                   </button>
                 );
@@ -594,17 +516,17 @@ export default function PersonalInfoPage() {
 
               <button
                 onClick={() => router.push("/auth/account-purpose")}
-                className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all border border-dashed border-primary/30"
+                className="mt-2 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all border border-dashed border-primary/20"
               >
                 <Plus className="w-4 h-4" />
-                Add More Purposes
+                Manage Purposes
               </button>
             </div>
 
             <div className="mt-6 p-4 bg-muted/50 rounded-xl border border-border">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                  Plan Utilization
+                  Plan Limit
                 </span>
                 <span className="text-[10px] font-black text-primary uppercase">
                   {user?.plan}
@@ -620,7 +542,7 @@ export default function PersonalInfoPage() {
               </div>
               <p className="text-[10px] text-muted-foreground mt-2 text-center">
                 {selectedPurposes.length} of {getPurposeLimitByPlan(user?.plan)}{" "}
-                purposes.
+                purposes used.
               </p>
             </div>
           </div>
@@ -628,158 +550,178 @@ export default function PersonalInfoPage() {
 
         {/* MAIN CONTENT AREA */}
         <main className="flex-1 min-w-0">
-          <div className="space-y-2 mb-8 border-b border-border/50 pb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-md">
-                {(() => {
-                  const Icon = ICON_MAP[activePurposeConfig?.icon] || Layout;
-                  return <Icon className="w-5 h-5" />;
-                })()}
+          {activeTab === "shared" ? (
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+              {/* GLOBAL SHARED FIELDS */}
+              <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
+                <div className="bg-muted/30 p-6 border-b border-border">
+                  <h3 className="text-xl font-bold text-foreground">
+                    Shared Brand Identity
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    These fields are used across all your website categories to
+                    maintain brand consistency.
+                  </p>
+                </div>
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {SHARED_FIELDS.map((f) => (
+                    <div
+                      key={f.name}
+                      className={f.type === "textarea" ? "md:col-span-2" : ""}
+                    >
+                      <FieldRenderer
+                        field={f}
+                        value={sharedData[f.name]}
+                        onChange={handleSharedChange}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h2 className="text-2xl font-black text-foreground">
-                {activePurposeConfig?.label} Setup
-              </h2>
-            </div>
-            <p className="text-sm text-muted-foreground font-medium">
-              Information in this tab is specifically optimized for your
-              <span className="text-primary font-bold mx-1">
-                {activePurposeConfig?.label.toLowerCase()}
-              </span>
-              websites.
-            </p>
-          </div>
 
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* SHARED SECTIONS */}
-            {SHARED_SECTIONS_CONFIG.map((sec) => (
-              <AccordionSection
-                key={sec.id}
-                id={sec.id}
-                title={sec.title}
-                description={sec.description}
-                icon={sec.icon}
-                isOpen={expandedSection === sec.id}
-                onToggle={() =>
-                  setExpandedSection(expandedSection === sec.id ? null : sec.id)
-                }
-              >
-                {sec.isSocial ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {SOCIAL_LINKS.map((s) => (
-                      <div key={s} className="space-y-2">
-                        <label className="block text-[13px] font-bold text-foreground/80 uppercase tracking-widest leading-none">
-                          {s}
-                        </label>
-                        <div className="relative group">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
-                            <Globe className="w-4 h-4" />
-                          </div>
-                          <input
-                            type="url"
-                            placeholder={`https://${s}.com/your-profile`}
-                            value={socialLinks[s] || ""}
-                            onChange={(e) =>
-                              handleSocialChange(s, e.target.value)
-                            }
-                            className="w-full pl-11 pr-4 py-3 rounded-xl border border-border bg-background text-[14px] focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all font-medium"
-                          />
+              {/* SOCIAL LINKS */}
+              <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
+                <div className="bg-muted/30 p-6 border-b border-border">
+                  <h3 className="text-xl font-bold text-foreground">
+                    Global Social Presence
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Connect your profiles once, use them everywhere.
+                  </p>
+                </div>
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {SOCIAL_LINKS.map((s) => (
+                    <div key={s} className="space-y-2">
+                      <label className="block text-[13px] font-semibold text-foreground/80 uppercase tracking-wide capitalize">
+                        {s}
+                      </label>
+                      <div className="relative group">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
+                          <Globe className="w-4 h-4" />
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {sec.fields.map((f) => (
-                      <div
-                        key={f.name}
-                        className={f.type === "textarea" ? "md:col-span-2" : ""}
-                      >
-                        <FieldRenderer
-                          field={f}
-                          value={sharedData[f.name]}
-                          onChange={handleSharedChange}
+                        <input
+                          type="url"
+                          placeholder={`https://${s}.com/your-profile`}
+                          value={socialLinks[s] || ""}
+                          onChange={(e) =>
+                            handleSocialChange(s, e.target.value)
+                          }
+                          className="w-full pl-11 pr-4 py-3 rounded-xl border border-border bg-background text-[14px] focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
                         />
                       </div>
-                    ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
+                <div className="bg-primary/5 p-6 border-b border-border flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                      {(() => {
+                        const Icon =
+                          ICON_MAP[activePurposeConfig?.icon] || Layout;
+                        return <Icon className="w-6 h-6" />;
+                      })()}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground">
+                        {activePurposeConfig?.label} Specific Details
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Unique information required for your{" "}
+                        {activePurposeConfig?.label.toLowerCase()} website.
+                      </p>
+                    </div>
+                  </div>
+                  {user?.primaryPurpose === activeTab && (
+                    <span className="bg-emerald-500/10 text-emerald-600 text-[10px] font-black px-3 py-1.5 rounded-full border border-emerald-500/20 uppercase tracking-tighter shadow-sm">
+                      PRIMARY PURPOSE
+                    </span>
+                  )}
+                </div>
+
+                {activePurposeConfig?.sections?.length > 0 && (
+                  <div className="border-b border-border overflow-x-auto">
+                    <div className="flex p-2 gap-2">
+                      {activePurposeConfig.sections.map((s) => (
+                        <button
+                          key={s.sectionId}
+                          onClick={() => setActivePurposeSection(s.sectionId)}
+                          className={cn(
+                            "px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap",
+                            activePurposeSection === s.sectionId
+                              ? "bg-primary text-primary-foreground shadow-md"
+                              : "text-muted-foreground hover:bg-muted",
+                          )}
+                        >
+                          {s.title}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
-              </AccordionSection>
-            ))}
 
-            {/* PURPOSE SECTIONS */}
-            {activePurposeConfig?.sections?.map((sec) => (
-              <AccordionSection
-                key={sec.sectionId}
-                id={sec.sectionId}
-                title={sec.title}
-                description={
-                  sec.description ||
-                  `Specialized details for your ${activePurposeConfig.label.toLowerCase()} site.`
-                }
-                icon={Briefcase}
-                isOpen={expandedSection === sec.sectionId}
-                onToggle={() =>
-                  setExpandedSection(
-                    expandedSection === sec.sectionId ? null : sec.sectionId,
-                  )
-                }
-              >
-                <div className="space-y-6">
-                  {sec.fields.map((field) => {
-                    if (sharedFieldNames.includes(field.name)) return null;
+                <div className="p-8">
+                  {activePurposeConfig?.sections
+                    ?.find((s) => s.sectionId === activePurposeSection)
+                    ?.fields.map((field) => {
+                      // Skip shared fields
+                      if (sharedFieldNames.includes(field.name)) return null;
 
-                    if (field.type === "repeater") {
+                      if (field.type === "repeater") {
+                        return (
+                          <RepeaterField
+                            key={field.name}
+                            field={field}
+                            value={purposeData[activeTab]?.[field.name]}
+                            onChange={(fName, val) =>
+                              handlePurposeChange(activeTab, fName, val)
+                            }
+                          />
+                        );
+                      }
+
                       return (
-                        <RepeaterField
-                          key={field.name}
-                          field={field}
-                          value={purposeData[activeTab]?.[field.name]}
-                          onChange={(fName, val) =>
-                            handlePurposeChange(activeTab, fName, val)
-                          }
-                        />
+                        <div key={field.name} className="mb-6">
+                          <FieldRenderer
+                            field={field}
+                            value={purposeData[activeTab]?.[field.name]}
+                            onChange={(fName, val) =>
+                              handlePurposeChange(activeTab, fName, val)
+                            }
+                          />
+                        </div>
                       );
-                    }
-
-                    return (
-                      <FieldRenderer
-                        key={field.name}
-                        field={field}
-                        value={purposeData[activeTab]?.[field.name]}
-                        onChange={(fName, val) =>
-                          handlePurposeChange(activeTab, fName, val)
-                        }
-                      />
-                    );
-                  })}
+                    })}
                 </div>
-              </AccordionSection>
-            ))}
-          </div>
-
-          <div className="mt-12 bg-emerald-500/5 border border-emerald-500/20 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-                <Sparkles className="w-8 h-8" />
               </div>
-              <div>
-                <h4 className="text-lg font-black text-foreground">
-                  Ready to Generate?
-                </h4>
-                <p className="text-sm text-muted-foreground font-medium max-w-md">
-                  Once you save your changes, SiteCraft AI will use this data to
-                  create a high-converting{" "}
-                  {activePurposeConfig?.label.toLowerCase()} website for you.
-                </p>
+
+              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <Sparkles className="w-8 h-8 text-emerald-500" />
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground">
+                      Pro-Tip for {activePurposeConfig?.label}
+                    </h4>
+                    <p className="text-[13px] text-muted-foreground font-medium">
+                      Entering specialized data here allows SiteCraft AI to
+                      create much higher quality content tailored specifically
+                      for {activePurposeConfig?.label.toLowerCase()} use-cases.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleSave}
+                  className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  <Save className="w-4 h-4" /> Save Category Info
+                </button>
               </div>
             </div>
-            <button
-              onClick={handleSave}
-              className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-10 py-4 rounded-2xl text-base font-black shadow-xl hover:shadow-emerald-500/20 transition-all flex items-center justify-center gap-3"
-            >
-              <Save className="w-5 h-5" /> Save Changes
-            </button>
-          </div>
+          )}
         </main>
       </div>
     </div>

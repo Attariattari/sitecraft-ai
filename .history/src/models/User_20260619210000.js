@@ -171,7 +171,7 @@ UserSchema.pre("save", async function() {
     if (!ROOT_EMAIL) return;
 
     const isRootEmail =
-        this.email ?.toLowerCase().trim() === ROOT_EMAIL.toLowerCase().trim();
+        this.email ? .toLowerCase().trim() === ROOT_EMAIL.toLowerCase().trim();
 
     if (isRootEmail || this.isRootSuperAdmin) {
         // Ensure root properties are immutable
