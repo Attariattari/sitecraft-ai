@@ -15,7 +15,7 @@ export async function GET(req) {
         const state = searchParams.get("state");
 
         const cookieStore = await cookies();
-        const storedState = cookieStore.get("google_oauth_state") ?.value || null;
+        const storedState = cookieStore.get("google_oauth_state") ? .value || null;
 
         if (cookieStore.get("google_oauth_state")) {
             cookieStore.delete("google_oauth_state");

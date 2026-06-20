@@ -1,4 +1,4 @@
-﻿import { Geist, Geist_Mono, Inter, Outfit } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { AppLoaderProvider } from "@/components/providers/AppLoaderProvider";
 import { UserProvider } from "@/context/UserContext";

@@ -8,7 +8,7 @@ import { siteCraftPersonalInfoCategories } from "@/lib/data";
 export async function PATCH(req) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get("sitecraft_token") ? .value;
+        const token = cookieStore.get("sitecraft_token") ?.value;
 
         if (!token) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });

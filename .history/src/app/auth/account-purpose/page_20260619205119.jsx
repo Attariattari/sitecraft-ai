@@ -35,7 +35,7 @@ const iconMap = {
   Layout,
 };
 
-function AccountPurposeContent() {
+export default function AccountPurposePage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -154,10 +154,7 @@ function AccountPurposeContent() {
 
         <div className="relative p-6 md:p-12">
           <div className="text-center mb-10">
-            <div
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-6 uppercase tracking-wider"
-              id="step-indicator"
-            >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-6 uppercase tracking-wider">
               Step 1: Website Purpose
             </div>
 
@@ -170,7 +167,7 @@ function AccountPurposeContent() {
                 {user?.plan}
               </span>{" "}
               plan, you can select up to{" "}
-              <span className="text-white font-bold" id="limit-display">
+              <span className="text-white font-bold">
                 {limit === Infinity ? "all" : limit}
               </span>{" "}
               purpose{limit !== 1 ? "s" : ""}.
@@ -208,7 +205,6 @@ function AccountPurposeContent() {
               return (
                 <button
                   key={cat.id}
-                  id={`purpose-${cat.id}`}
                   onClick={() => togglePurpose(cat.id)}
                   className={`group relative text-left p-5 rounded-2xl border transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex flex-col ${
                     isSelected
@@ -278,7 +274,6 @@ function AccountPurposeContent() {
 
             <button
               onClick={handleContinue}
-              id="continue-button"
               disabled={saving || selectedPurposes.length === 0}
               className="w-full md:w-auto px-10 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-[#0a0a0a] font-black text-lg transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-3 group"
             >
@@ -306,19 +301,5 @@ function AccountPurposeContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function AccountPurposePage() {
-  return (
-    <React.Suspense
-      fallback={
-        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-          <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-        </div>
-      }
-    >
-      <AccountPurposeContent />
-    </React.Suspense>
   );
 }

@@ -13,10 +13,10 @@ export async function createActivityLog({
     try {
         await dbConnect();
         const ipAddress =
-            req ? .headers.get("x-forwarded-for") ? .split(",")[0] ? .trim() ||
-            req ? .headers.get("x-real-ip") ||
+            req ?.headers.get("x-forwarded-for") ?.split(",")[0] ?.trim() ||
+            req ?.headers.get("x-real-ip") ||
             "";
-        const userAgent = req ? .headers.get("user-agent") || "";
+        const userAgent = req ?.headers.get("user-agent") || "";
 
         await ActivityLog.create({
             actorId,

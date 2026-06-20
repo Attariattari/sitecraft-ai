@@ -23,7 +23,7 @@ export function getUserPrimaryPurpose(user) {
     if (user && user.primaryPurpose && ACCOUNT_PURPOSES.includes(user.primaryPurpose)) {
         return user.primaryPurpose;
     }
-    return user ?.accountPurpose || FALLBACK_PURPOSE;
+    return user ? .accountPurpose || FALLBACK_PURPOSE;
 }
 
 /**
@@ -62,7 +62,7 @@ export function getAccountPurposeConfig(accountPurpose) {
  */
 export function getAccountPurposeLabel(accountPurpose) {
     const config = getAccountPurposeConfig(accountPurpose);
-    return config ?.label || accountPurpose;
+    return config ? .label || accountPurpose;
 }
 
 /**
@@ -71,7 +71,7 @@ export function getAccountPurposeLabel(accountPurpose) {
 export function getDashboardCopy(accountPurpose) {
     const config = getAccountPurposeConfig(accountPurpose);
     return (
-        config ?.dashboardCopy || {
+        config ? .dashboardCopy || {
             welcomeTitle: "Build your website",
             welcomeSubtitle: "Manage your details, services, and websites.",
             generateTitle: "Generate Your Website",
@@ -117,7 +117,7 @@ export function getCategoryTemplates(accountPurpose) {
  * Returns the plan-based purpose status for the UI
  */
 export function getPurposeStatus(user) {
-    const limit = getPurposeLimitByPlan(user ?.plan || "free");
+    const limit = getPurposeLimitByPlan(user ? .plan || "free");
     const selected = getUserSelectedPurposes(user);
     return {
         limit,
