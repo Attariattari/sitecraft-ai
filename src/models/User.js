@@ -136,6 +136,10 @@ const UserSchema = new mongoose.Schema({
             default: "system",
         },
         emailNotifications: { type: Boolean, default: true },
+        defaultThemeId: {
+            type: String,
+            default: "",
+        },
     },
     resetPasswordToken: {
         type: String,

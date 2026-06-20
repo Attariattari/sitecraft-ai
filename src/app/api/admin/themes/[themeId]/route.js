@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import Theme from "@/models/Theme";
 import dbConnect from "@/lib/dbConnect";
-import { getThemeUsage } from "@/lib/themes/themeService";
+import { getThemeUsage, invalidateAllThemeRecommendations } from "@/lib/themes/themeService";
+import { realtimeEmitter } from "@/lib/realtime/realtimeEmitter";
+import { REALTIME_EVENTS } from "@/lib/realtime/events";
 
 export async function PATCH(req, { params }) {
   try {
@@ -61,6 +63,25 @@ export async function PATCH(req, { params }) {
       { $set: body },
       { new: true, runValidators: true },
     );
+
+    // Invalidate recommendation cache when theme availability changes
+    if (body.hasOwnProperty("isAvailable") || body.hasOwnProperty("isActive") || body.hasOwnProperty("isLocked")) {
+      await invalidateAllThemeRecommendations();
+      
+      // Emit realtime event to all users
+      try {
+        await realtimeEmitter.emitToAll(
+          REALTIME_EVENTS.THEME.LIST_REFRESH,
+          {
+            title: "Theme Availability Changed",
+            message: "Theme availability has been updated. Your theme list was refreshed.",
+            themeId,
+          }
+        );
+      } catch (error) {
+        console.error("Failed to emit realtime event:", error);
+      }
+    }
 
     return NextResponse.json({
       success: true,

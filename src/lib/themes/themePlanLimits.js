@@ -1,0 +1,74 @@
+/**
+ * Theme Plan Limits
+ * Determines how many themes a user can access based on their plan
+ */
+
+const PLAN_THEME_LIMITS = {
+  free: 1,
+  basic: 4,
+  pro: 10,
+  agency: Infinity,
+};
+
+/**
+ * Get the number of themes allowed for a user's plan
+ */
+export function getThemeLimitByPlan(plan) {
+  return PLAN_THEME_LIMITS[plan] || 1;
+}
+
+/**
+ * Apply plan limit to themes array
+ * Returns only the allowed number of themes based on user plan
+ */
+export function applyThemePlanLimit(themes, plan) {
+  if (!Array.isArray(themes)) return [];
+  
+  const limit = getThemeLimitByPlan(plan);
+  if (limit === Infinity) return themes;
+  
+  return themes.slice(0, limit);
+}
+
+/**
+ * Get the allowed theme count for a user
+ */
+export function getAllowedThemeCount(user) {
+  if (!user || !user.plan) return 1;
+  return getThemeLimitByPlan(user.plan);
+}
+
+/**
+ * Check if user can access a specific theme
+ * Based on plan and position in recommended list
+ */
+export function canUserAccessTheme(user, themeId, recommendedThemeIds = []) {
+  if (!user) return false;
+  
+  const plan = user.plan || "free";
+  const limit = getThemeLimitByPlan(plan);
+  
+  if (limit === Infinity) return true;
+  
+  // Check if theme is in recommended list and within limit
+  const themeIndex = recommendedThemeIds.indexOf(themeId);
+  if (themeIndex === -1) return false; // Not in recommended list
+  
+  return themeIndex < limit;
+}
+
+/**
+ * Format plan limit for display
+ */
+export function formatThemeLimitForDisplay(plan) {
+  const limit = getThemeLimitByPlan(plan);
+  
+  const displays = {
+    free: "1 AI-recommended theme",
+    basic: "4 AI-recommended themes",
+    pro: "10 AI-recommended themes",
+    agency: "all available themes",
+  };
+  
+  return displays[plan] || displays.free;
+}

@@ -29,6 +29,10 @@ const themeSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    recommendedPurposes: {
+      type: [String],
+      default: [],
+    },
     previewImage: {
       type: String,
       trim: true,

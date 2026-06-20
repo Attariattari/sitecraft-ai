@@ -172,3 +172,20 @@ export async function seedThemes() {
     message: `Themes synchronized successfully! Seeded ${count} themes.`,
   };
 }
+
+/**
+ * Invalidate all theme recommendations cache when themes change
+ */
+export async function invalidateAllThemeRecommendations() {
+  try {
+    const ThemeRecommendation =
+      mongoose.models.ThemeRecommendation ||
+      (await import("@/models/ThemeRecommendation")).default;
+    
+    await ThemeRecommendation.deleteMany({});
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to invalidate theme recommendations:", error);
+    return { success: false, error: error.message };
+  }
+}
