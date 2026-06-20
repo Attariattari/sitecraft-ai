@@ -69,11 +69,6 @@ export async function POST(req) {
                 // fall through to normal login checks
             } else {
                 // Otherwise, initiate OTP verification for first-time root setup
-                const crypto = (await
-                    import ("crypto")).default;
-                const bcryptLib = (await
-                    import ("bcryptjs")).default;
-
                 const ipAddress =
                     req.headers.get("x-forwarded-for") ? .split(",")[0] ? .trim() ||
                     req.headers.get("x-real-ip") ||

@@ -37,17 +37,22 @@ const UserSchema = new mongoose.Schema(
     },
     accountPurpose: {
       type: String,
+      enum: [
+        "",
+        "portfolio",
+        "business",
+        "salon",
+        "ecommerce",
+        "restaurant",
+        "clinic",
+        "realEstate",
+        "agency",
+        "school",
+        "landingPage",
+      ],
       required: false,
       default: "",
       index: true,
-    },
-    primaryPurpose: {
-      type: String,
-      default: "",
-    },
-    selectedPurposes: {
-      type: [String],
-      default: [],
     },
     isRootSuperAdmin: {
       type: Boolean,
@@ -84,7 +89,6 @@ const UserSchema = new mongoose.Schema(
     isEmailVerified: {
       type: Boolean,
       default: false,
-      index: true,
     },
     emailVerifiedAt: {
       type: Date,
@@ -151,27 +155,9 @@ const UserSchema = new mongoose.Schema(
 UserSchema.index({ createdAt: -1 });
 
 // Protect Root Super Admin from being modified
-UserSchema.pre("save", async function (next) {
+UserSchema.pre("save", async function () {
   const ROOT_EMAIL = process.env.ROOT_SUPER_ADMIN_EMAIL;
-
-  // Migration logic for old accountPurpose
-  if (this.accountPurpose && !this.primaryPurpose) {
-    this.primaryPurpose = this.accountPurpose;
-  }
-
-  if (
-    this.primaryPurpose &&
-    (!this.selectedPurposes || this.selectedPurposes.length === 0)
-  ) {
-    this.selectedPurposes = [this.primaryPurpose];
-  }
-
-  // Keep accountPurpose in sync with primaryPurpose for backward compatibility
-  if (this.primaryPurpose) {
-    this.accountPurpose = this.primaryPurpose;
-  }
-
-  if (!ROOT_EMAIL) return next();
+  if (!ROOT_EMAIL) return;
 
   const isRootEmail =
     this.email.toLowerCase().trim() === ROOT_EMAIL.toLowerCase().trim();
@@ -181,15 +167,12 @@ UserSchema.pre("save", async function (next) {
     this.role = "super-admin";
     this.isRootSuperAdmin = true;
     this.status = "active";
-    this.plan = "agency"; // Root admins always get all purposes
   }
 
   // Super admins always get at least "pro" plan — never free or basic
   if (this.role === "super-admin" && ["free", "basic"].includes(this.plan)) {
-    this.plan = "agency";
+    this.plan = "pro";
   }
-
-  next();
 });
 
 // Prevent Root Super Admin from being deleted

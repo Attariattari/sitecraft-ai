@@ -5,10 +5,8 @@ import User from "@/models/User";
 import { signAuthToken } from "@/lib/auth/tokens";
 import { isRootSuperAdminEmail } from "@/lib/auth/rootSuperAdmin";
 import getBaseUrl from "@/lib/getBaseUrl";
-import { uploadRemoteImageToCloudinary } from "@/lib/cloudinary";
 
 export async function GET(req) {
-    const baseUrl = getBaseUrl();
     try {
         const { searchParams } = new URL(req.url);
         const code = searchParams.get("code");
@@ -24,12 +22,13 @@ export async function GET(req) {
 
         if (!code || !state || !storedState || state !== storedState) {
             console.warn("Google OAuth state mismatch or missing code");
-            return NextResponse.redirect(`${baseUrl}/login`);
+            return NextResponse.redirect(`${getBaseUrl()}/login`);
         }
 
         const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
         const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 
+        const baseUrl = getBaseUrl();
         const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || `${baseUrl}/api/auth/google/callback`;
 
         if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -83,24 +82,6 @@ export async function GET(req) {
 
         await dbConnect();
 
-        // 1. Helper to upload to Cloudinary
-        const uploadProfileImage = async(imageUrl) => {
-            if (!imageUrl) return null;
-            try {
-                const result = await uploadRemoteImageToCloudinary(imageUrl, "users/profile-images");
-                return {
-                    url: result.secure_url,
-                    publicId: result.public_id,
-                    uploadedAt: new Date()
-                };
-            } catch (err) {
-                if (process.env.NODE_ENV === "development") {
-                    console.warn("Cloudinary upload failed for Google profile image:", err.message);
-                }
-                return null;
-            }
-        };
-
         // Root super admin handling
         if (isRootSuperAdminEmail(email)) {
             const existingRoot = await User.findOne({ email });
@@ -113,8 +94,7 @@ export async function GET(req) {
             // If no users exist, allow creation of initial root via Google
             const usersCount = await User.countDocuments();
             if (usersCount === 0) {
-                const cloudinaryImage = await uploadProfileImage(avatar);
-                const newRootData = {
+                const newRoot = await User.create({
                     name: name || "Root Super Admin",
                     email,
                     role: "super-admin",
@@ -128,15 +108,7 @@ export async function GET(req) {
                     authProvider: "google",
                     googleId,
                     avatarUrl: avatar,
-                    lastLoginAt: new Date(),
-                    sessionVersion: 0,
-                };
-
-                if (cloudinaryImage) {
-                    newRootData.profileImage = cloudinaryImage;
-                }
-
-                const newRoot = await User.create(newRootData);
+                });
 
                 const token = signAuthToken(newRoot);
                 const cs = await cookies();
@@ -174,15 +146,8 @@ export async function GET(req) {
                 changed = true;
             }
 
-            // Upload image to Cloudinary if user has no profile image yet
-            if ((!user.profileImage || !user.profileImage.url) && avatar) {
-                const cloudinaryImage = await uploadProfileImage(avatar);
-                if (cloudinaryImage) {
-                    user.profileImage = cloudinaryImage;
-                    changed = true;
-                }
-            }
-
+            // If they don't have a password (pure social) or authProvider is default, 
+            // set it to google. If they have a password, they are still 'credentials' but linked.
             if (!user.password && user.authProvider !== "google") {
                 user.authProvider = "google";
                 changed = true;
@@ -203,14 +168,13 @@ export async function GET(req) {
 
             // Redirect logic
             if (!user.accountPurpose) {
-                return NextResponse.redirect(`${baseUrl}/auth/account-purpose?from=google`);
+                return NextResponse.redirect(`${baseUrl}/dashboard/personal-info`);
             }
             return NextResponse.redirect(`${baseUrl}/dashboard`);
         }
 
         // Create new user (Signup flow via Google)
-        const cloudinaryImage = await uploadProfileImage(avatar);
-        const newUserData = {
+        const newUser = await User.create({
             name: name || "",
             email,
             googleId,
@@ -221,17 +185,11 @@ export async function GET(req) {
             role: "user",
             plan: "free",
             credits: 10,
-            accountPurpose: "", // Will trigger redirect to account-purpose
+            accountPurpose: "", // Will trigger redirect to personal-info
             lastLoginAt: new Date(),
             status: "active",
             sessionVersion: 0,
-        };
-
-        if (cloudinaryImage) {
-            newUserData.profileImage = cloudinaryImage;
-        }
-
-        const newUser = await User.create(newUserData);
+        });
 
         const token = signAuthToken(newUser);
         const cs = await cookies();
@@ -243,9 +201,10 @@ export async function GET(req) {
             maxAge: 7 * 24 * 60 * 60,
         });
 
-        return NextResponse.redirect(`${baseUrl}/auth/account-purpose?from=google`);
+        return NextResponse.redirect(`${baseUrl}/dashboard/personal-info`);
     } catch (err) {
         console.error("Google callback error:", err);
+        const baseUrl = getBaseUrl();
         return NextResponse.redirect(`${baseUrl}/login`);
     }
 }
