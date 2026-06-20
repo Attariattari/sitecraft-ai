@@ -81,6 +81,22 @@ const themeSchema = new mongoose.Schema(
       trim: true,
       default: "Coming soon",
     },
+    recommendedPurposes: {
+      type: [String],
+      default: [],
+    },
+    aiRecommendationEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    manualPriorityScore: {
+      type: Number,
+      default: 0,
+    },
+    aiScore: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

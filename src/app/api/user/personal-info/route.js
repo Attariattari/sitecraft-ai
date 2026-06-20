@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import PersonalInfo from "@/models/PersonalInfo";
 import User from "@/models/User";
 import { verifyAuthToken } from "@/lib/auth/tokens";
+import { handlePersonalInfoUpdate } from "@/lib/themes/cacheInvalidation";
 
 export async function GET(req) {
     try {
@@ -105,6 +106,9 @@ export async function PATCH(req) {
         }
 
         await personalInfo.save();
+
+        // Invalidate theme recommendations when personal info changes
+        await handlePersonalInfoUpdate(decoded.userId);
 
         return NextResponse.json({
             success: true,

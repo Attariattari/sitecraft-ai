@@ -3,6 +3,10 @@ import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import Theme from "@/models/Theme";
 import dbConnect from "@/lib/dbConnect";
 import { getThemeUsage } from "@/lib/themes/themeService";
+import {
+  handleThemeAvailabilityChange,
+  notifyThemeListRefresh,
+} from "@/lib/themes/cacheInvalidation";
 
 export async function PATCH(req, { params }) {
   try {
@@ -61,6 +65,28 @@ export async function PATCH(req, { params }) {
       { $set: body },
       { new: true, runValidators: true },
     );
+
+    // Handle cache invalidation if availability/visibility changed
+    const changedFields = Object.keys(body);
+    const availabilityFieldsChanged = changedFields.some((field) =>
+      [
+        "isActive",
+        "isAvailable",
+        "isLocked",
+        "showOnHome",
+        "showInGenerate",
+        "showInDashboard",
+        "showInThemeShowcase",
+        "recommendedPurposes",
+      ].includes(field)
+    );
+
+    if (availabilityFieldsChanged) {
+      await handleThemeAvailabilityChange(themeId, body);
+    }
+
+    // Emit refresh event to connected clients
+    notifyThemeListRefresh({ themeId, action: "updated" });
 
     return NextResponse.json({
       success: true,
