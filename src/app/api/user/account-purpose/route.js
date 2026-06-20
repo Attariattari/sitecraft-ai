@@ -37,9 +37,9 @@ export async function PATCH(req) {
             return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
         }
 
-        // Update only the accountPurpose
-        user.accountPurpose = accountPurpose;
-        await user.save();
+        await User.findByIdAndUpdate(
+            decoded.userId, { $set: { accountPurpose, primaryPurpose: accountPurpose } }, { runValidators: false }
+        );
 
         return NextResponse.json({
             success: true,

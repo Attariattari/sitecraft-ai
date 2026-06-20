@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
-import { signAuthToken } from "@/lib/auth/tokens";
+import { signAuthToken, signPendingLinkToken } from "@/lib/auth/tokens";
 import { isRootSuperAdminEmail } from "@/lib/auth/rootSuperAdmin";
 import getBaseUrl from "@/lib/getBaseUrl";
 import { uploadRemoteImageToCloudinary } from "@/lib/cloudinary";
@@ -63,51 +63,85 @@ export async function GET(req) {
             return NextResponse.redirect(`${baseUrl}/login`);
         }
 
-        const profile = await profileRes.json();
-        const email = profile.email && profile.email.toLowerCase();
-        const emailVerified = !!profile.email_verified;
-        const googleId = profile.sub;
-        const name = profile.name || "";
-        const avatar = profile.picture || "";
+        const profileData = await profileRes.json();
+        const email = profileData.email && profileData.email.toLowerCase();
+        const emailVerified = !!profileData.email_verified;
+        const googleId = profileData.sub;
+        const name = profileData.name || "";
+        const avatar = profileData.picture || "";
 
         if (!email || !emailVerified) {
-            return NextResponse.redirect(`${baseUrl}/login`);
+            return NextResponse.redirect(`${baseUrl}/login?error=google_email_not_verified`);
         }
 
         await dbConnect();
 
-        let user = await User.findOne({ email });
+        // 1. Search by googleId first (Safe Login)
+        let user = await User.findOne({ googleId });
         const isRoot = isRootSuperAdminEmail(email);
 
-        if (!user) {
-            const usersCount = await User.countDocuments();
-            user = new User({
-                name: name,
-                email,
-                avatarUrl: avatar,
-                googleId: googleId,
-                authProvider: 'google',
-                isEmailVerified: true,
-                status: 'active',
-                plan: isRoot ? 'agency' : (usersCount === 0 ? 'agency' : 'free'),
-                role: (isRoot || usersCount === 0) ? 'super-admin' : 'user',
-                isRootSuperAdmin: isRoot || usersCount === 0,
-                credits: (isRoot || usersCount === 0) ? 999999 : 10,
-                primaryPurpose: '',
-                selectedPurposes: [],
-                accountPurpose: '',
-            });
-            await user.save();
-        } else {
-            // Existing user handling
+        if (user) {
+            // Already matched googleId -> Existing Google User
             if (user.status === "restricted" || user.status === "suspended") {
                 return NextResponse.redirect(`${baseUrl}/restricted`);
             }
 
-            if (!user.googleId) {
-                user.googleId = googleId;
-                user.authProvider = "google";
-                if (!user.avatarUrl) user.avatarUrl = avatar;
+            // Mark last provider as google
+            await User.findByIdAndUpdate(user._id, {
+                $set: { lastLoginProvider: "google", lastLoginAt: new Date() }
+            }, { runValidators: false });
+        } else {
+            // 2. Search by email (Account Linking Detection)
+            user = await User.findOne({ email });
+
+            if (user) {
+                // Email exact match but googleId missing -> Case 2: Unlinked
+                if (user.status === "restricted" || user.status === "suspended") {
+                    return NextResponse.redirect(`${baseUrl}/restricted`);
+                }
+
+                // Generate pending link token
+                const pendingLinkToken = signPendingLinkToken({
+                    existingUserId: user._id.toString(),
+                    existingUserName: user.name,
+                    existingUserEmail: user.email,
+                    existingUserPlan: user.plan || "free",
+                    existingUserRole: user.role || "user",
+                    existingUserImage: user.profileImage ?.url || user.avatarUrl || null,
+                    googleId,
+                    googleEmail: email,
+                    googleName: name,
+                    googlePicture: avatar,
+                    expiresAt: Date.now() + 10 * 60 * 1000
+                });
+
+                return NextResponse.redirect(`${baseUrl}/auth/link-google?token=${pendingLinkToken}`);
+            } else {
+                // 3. New User -> Case 3: Create
+                const usersCount = await User.countDocuments();
+                user = new User({
+                    name: name,
+                    email,
+                    googleId: googleId,
+                    authProvider: 'google',
+                    lastLoginProvider: 'google',
+                    authProviders: { credentials: false, google: true },
+                    isEmailVerified: true,
+                    status: 'active',
+                    plan: isRoot ? 'agency' : (usersCount === 0 ? 'agency' : 'free'),
+                    role: (isRoot || usersCount === 0) ? 'super-admin' : 'user',
+                    isRootSuperAdmin: isRoot || usersCount === 0,
+                    credits: (isRoot || usersCount === 0) ? 999999 : 10,
+                    primaryPurpose: '',
+                    selectedPurposes: [],
+                    accountPurpose: '',
+                    googleProfile: {
+                        name,
+                        email,
+                        picture: avatar,
+                        linkedAt: new Date()
+                    }
+                });
                 await user.save();
             }
         }
@@ -117,19 +151,27 @@ export async function GET(req) {
             try {
                 const result = await uploadRemoteImageToCloudinary(avatar, `users/${user._id}/avatar`);
                 if (result) {
-                    user.profileImage = {
-                        url: result.secure_url,
-                        publicId: result.public_id,
-                        uploadedAt: new Date()
-                    };
-                    await user.save();
+                    await User.findByIdAndUpdate(
+                        user._id, {
+                            $set: {
+                                profileImage: {
+                                    url: result.secure_url,
+                                    publicId: result.public_id,
+                                    uploadedAt: new Date()
+                                }
+                            }
+                        }, { runValidators: false }
+                    );
+                    user.profileImage = { url: result.secure_url }; // keep local ref in sync
                 }
             } catch (e) {
                 console.warn("Cloudinary upload failed on login", e.message);
             }
         }
 
-        const token = signAuthToken(user);
+        // Re-fetch the latest user from DB to get fresh data for the token
+        const freshUser = await User.findById(user._id);
+        const token = signAuthToken(freshUser || user, "7d", "google");
         const cs = await cookies();
         cs.set("sitecraft_token", token, {
             httpOnly: true,
@@ -139,18 +181,19 @@ export async function GET(req) {
             maxAge: 7 * 24 * 60 * 60,
         });
 
-        if (user.isRootSuperAdmin && user.role === 'super-admin') {
-            // Root admin could skip or go to dashboard
-            if (!user.primaryPurpose) {
-                user.primaryPurpose = 'agency';
-                user.selectedPurposes = ['agency'];
-                user.accountPurpose = 'agency';
-                await user.save();
+        if ((freshUser || user).isRootSuperAdmin && (freshUser || user).role === 'super-admin') {
+            const finalUser = freshUser || user;
+            if (!finalUser.primaryPurpose) {
+                await User.findByIdAndUpdate(
+                    finalUser._id, { $set: { primaryPurpose: 'agency', selectedPurposes: ['agency'], accountPurpose: 'agency' } }, { runValidators: false }
+                );
             }
             return NextResponse.redirect(`${baseUrl}/dashboard`);
         }
 
-        if (!user.primaryPurpose || !user.selectedPurposes || user.selectedPurposes.length === 0) {
+        const finalPurpose = (freshUser || user).primaryPurpose;
+        const finalSelected = (freshUser || user).selectedPurposes;
+        if (!finalPurpose || !finalSelected || finalSelected.length === 0) {
             return NextResponse.redirect(`${baseUrl}/auth/account-purpose?from=google`);
         }
 
