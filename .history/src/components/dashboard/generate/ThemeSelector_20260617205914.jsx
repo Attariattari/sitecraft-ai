@@ -1,0 +1,90 @@
+"use client";
+
+import React, { useState } from "react";
+import { Check, Palette, ChevronDown } from "lucide-react";
+import { WEBSITE_THEMES } from "@/lib/themes/presets";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+import { getRecommendedThemesForPurpose } from "@/lib/accountPurposeResolver";
+
+export function ThemeSelector({
+  value,
+  onChange,
+  accountPurpose = "portfolio",
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const themes = Object.values(WEBSITE_THEMES);
+
+  // Get recommended theme IDs for the purpose
+  const recommendedIds = getRecommendedThemesForPurpose(accountPurpose);
+
+  const recommendedThemes = themes.filter((t) => recommendedIds.includes(t.id));
+  const otherThemes = themes.filter((t) => !recommendedIds.includes(t.id));
+
+  const displayThemes = showAll ? themes : recommendedThemes;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {displayThemes.map((theme) => (
+          <button
+            key={theme.id}
+            type="button"
+            onClick={() => onChange(theme.id)}
+            className={cn(
+              "relative flex flex-col p-4 rounded-xl border-2 text-left transition-all duration-200",
+              value === theme.id
+                ? "bg-primary/5 border-primary"
+                : "bg-card border-border/50 hover:border-border",
+            )}
+          >
+            {/* Color Chips */}
+            <div className="flex gap-1 h-3 w-full rounded-full overflow-hidden mb-3">
+              <div
+                className="flex-1"
+                style={{ backgroundColor: theme.modes.light.primary }}
+              />
+              <div
+                className="flex-1"
+                style={{ backgroundColor: theme.modes.light.accent }}
+              />
+              <div
+                className="flex-1"
+                style={{ backgroundColor: theme.modes.light.background }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[13px] font-bold text-foreground truncate">
+                {theme.name}
+              </span>
+              {value === theme.id && (
+                <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+              )}
+            </div>
+
+            <div className="mt-2 flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-foreground/20" />
+              <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-tighter">
+                L/D Support
+              </span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {!showAll && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAll(true)}
+          className="w-full sm:w-auto h-11 rounded-xl text-sm font-bold gap-2"
+        >
+          View all themes <ChevronDown className="w-4 h-4" />
+        </Button>
+      )}
+    </div>
+  );
+}

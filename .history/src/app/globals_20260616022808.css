@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@custom-variant dark (&:is(.dark *));
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-sans);
+    --font-mono: var(--font-geist-mono);
+    --font-heading: var(--font-sans);
+    --color-sidebar: var(--sidebar-bg);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-soft: var(--soft-bg);
+    --color-primary-dark: var(--primary-dark);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+    /* Dynamic Template Theme Variables */
+    --color-template-primary: var(--template-primary, var(--primary));
+    --color-template-primary-foreground: var(--template-primary-foreground, var(--primary-foreground));
+    --color-template-secondary: var(--template-secondary, var(--secondary));
+    --color-template-secondary-foreground: var(--template-secondary-foreground, var(--secondary-foreground));
+    --color-template-accent: var(--template-accent, var(--accent));
+    --color-template-accent-foreground: var(--template-accent-foreground, var(--accent-foreground));
+    --color-template-background: var(--template-background, var(--background));
+    --color-template-soft: var(--template-soft-background, var(--soft-bg));
+    --color-template-foreground: var(--template-foreground, var(--foreground));
+    --color-template-muted: var(--template-muted-foreground, var(--muted-foreground));
+    --color-template-border: var(--template-border, var(--border));
+}
+
+:root {
+    --background: #FFFFFF;
+    --foreground: #0F172A;
+    --card: #FFFFFF;
+    --card-foreground: #0F172A;
+    --popover: #FFFFFF;
+    --popover-foreground: #0F172A;
+    --primary: #16A34A;
+    --primary-foreground: #FFFFFF;
+    --secondary: #F8FAFC;
+    --secondary-foreground: #64748B;
+    --muted: #F8FAFC;
+    --muted-foreground: #64748B;
+    --accent: #F97316;
+    --accent-foreground: #FFFFFF;
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+    --border: #E2E8F0;
+    --input: #E2E8F0;
+    --ring: #16A34A;
+    --radius: 0.75rem;
+    /* Custom Brand Tokens */
+    --soft-bg: #F8FAFC;
+    --primary-dark: #047857;
+    /* Admin Dashboard Tokens */
+    --dashboard-bg: #F8FAFC;
+    --sidebar-bg: #0F172A;
+    --sidebar-foreground: #CBD5E1;
+    --sidebar-primary: #16A34A;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-border: #1E293B;
+    --sidebar-ring: #16A34A;
+    /* Charts */
+    --chart-1: #16A34A;
+    --chart-2: #F97316;
+    --chart-3: #047857;
+    --chart-4: #64748B;
+    --chart-5: #0F172A;
+}
+
+.dark {
+    --background: #020617;
+    --foreground: #F8FAFC;
+    --card: #020617;
+    --card-foreground: #F8FAFC;
+    --popover: #020617;
+    --popover-foreground: #F8FAFC;
+    --primary: #16A34A;
+    --primary-foreground: #FFFFFF;
+    --secondary: #1E293B;
+    --secondary-foreground: #CBD5E1;
+    --muted: #1E293B;
+    --muted-foreground: #94A3B8;
+    --accent: #F97316;
+    --accent-foreground: #FFFFFF;
+    --destructive: #7F1D1D;
+    --destructive-foreground: #F8FAFC;
+    --border: #1E293B;
+    --input: #1E293B;
+    --ring: #16A34A;
+    /* Admin Dashboard (Dark mode keeps sidebar same or slightly different) */
+    --sidebar-bg: #020617;
+    --sidebar-foreground: #94A3B8;
+    --sidebar-border: #1E293B;
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+    html {
+        @apply font-sans;
+    }
+}

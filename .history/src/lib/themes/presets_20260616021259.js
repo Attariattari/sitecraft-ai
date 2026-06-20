@@ -1,0 +1,148 @@
+export const WEBSITE_THEMES = {
+    emerald: {
+        id: "emerald",
+        name: "Emerald Fresh",
+        colors: {
+            primary: "#16A34A",
+            secondary: "#047857",
+            accent: "#F97316",
+            background: "#FFFFFF",
+            softBackground: "#F8FAFC",
+            text: "#0F172A",
+            mutedText: "#64748B",
+            border: "#E2E8F0",
+        },
+    },
+    modernDark: {
+        id: "modernDark",
+        name: "Modern Dark",
+        colors: {
+            primary: "#22D3EE",
+            secondary: "#6366F1",
+            accent: "#A855F7",
+            background: "#020617",
+            softBackground: "#0F172A",
+            text: "#F8FAFC",
+            mutedText: "#94A3B8",
+            border: "#1E293B",
+        },
+    },
+    royalBlue: {
+        id: "royalBlue",
+        name: "Royal Blue",
+        colors: {
+            primary: "#2563EB",
+            secondary: "#1D4ED8",
+            accent: "#38BDF8",
+            background: "#FFFFFF",
+            softBackground: "#EFF6FF",
+            text: "#0F172A",
+            mutedText: "#64748B",
+            border: "#BFDBFE",
+        },
+    },
+    premiumPurple: {
+        id: "premiumPurple",
+        name: "Premium Purple",
+        colors: {
+            primary: "#7C3AED",
+            secondary: "#5B21B6",
+            accent: "#EC4899",
+            background: "#FFFFFF",
+            softBackground: "#F5F3FF",
+            text: "#111827",
+            mutedText: "#6B7280",
+            border: "#DDD6FE",
+        },
+    },
+    minimalBlack: {
+        id: "minimalBlack",
+        name: "Minimal Black",
+        colors: {
+            primary: "#111827",
+            secondary: "#374151",
+            accent: "#9CA3AF",
+            background: "#FFFFFF",
+            softBackground: "#F9FAFB",
+            text: "#111827",
+            mutedText: "#6B7280",
+            border: "#E5E7EB",
+        },
+    },
+    warmBusiness: {
+        id: "warmBusiness",
+        name: "Warm Business",
+        colors: {
+            primary: "#EA580C",
+            secondary: "#9A3412",
+            accent: "#F59E0B",
+            background: "#FFFBEB",
+            softBackground: "#FFF7ED",
+            text: "#1C1917",
+            mutedText: "#78716C",
+            border: "#FED7AA",
+        },
+    },
+    creativeGradient: {
+        id: "creativeGradient",
+        name: "Creative Gradient",
+        colors: {
+            primary: "#8B5CF6",
+            secondary: "#EC4899",
+            accent: "#06B6D4",
+            background: "#FFFFFF",
+            softBackground: "#FDF4FF",
+            text: "#111827",
+            mutedText: "#6B7280",
+            border: "#E9D5FF",
+        },
+    },
+    luxuryGold: {
+        id: "luxuryGold",
+        name: "Luxury Gold",
+        colors: {
+            primary: "#D97706",
+            secondary: "#92400E",
+            accent: "#FACC15",
+            background: "#0A0A0A",
+            softBackground: "#171717",
+            text: "#FAFAFA",
+            mutedText: "#A3A3A3",
+            border: "#404040",
+        },
+    },
+    medicalClean: {
+        id: "medicalClean",
+        name: "Medical Clean",
+        colors: {
+            primary: "#0EA5E9",
+            secondary: "#0F766E",
+            accent: "#22C55E",
+            background: "#FFFFFF",
+            softBackground: "#F0FDFA",
+            text: "#0F172A",
+            mutedText: "#64748B",
+            border: "#BAE6FD",
+        },
+    },
+    restaurantWarm: {
+        id: "restaurantWarm",
+        name: "Restaurant Warm",
+        colors: {
+            primary: "#DC2626",
+            secondary: "#EA580C",
+            accent: "#FACC15",
+            background: "#FFFBEB",
+            softBackground: "#FFF7ED",
+            text: "#1C1917",
+            mutedText: "#78716C",
+            border: "#FED7AA",
+        },
+    },
+};
+
+export const DEFAULT_THEME_KEY = "emerald";
+
+export function getTheme(themeKey) {
+    return WEBSITE_THEMES[themeKey] || WEBSITE_THEMES[DEFAULT_THEME_KEY];
+}
