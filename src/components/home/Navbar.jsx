@@ -200,7 +200,7 @@ export function Navbar() {
     >
       <div className="container mx-auto px-6 h-[72px] flex items-center justify-between">
         {/* Logo */}
-        <SiteCraftLogo size="md" href="/" />
+        <SiteCraftLogo size="md" href="/" showText={true} />
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1">
