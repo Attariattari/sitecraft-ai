@@ -76,6 +76,7 @@ export function GenerateForm() {
   const [user, setUser] = useState(null);
   const [selectedPurpose, setSelectedPurpose] = useState("");
   const [dashboardCopy, setDashboardCopy] = useState({});
+  const [categories, setCategories] = useState([]);
   const [recommendedTheme, setRecommendedTheme] = useState("emerald");
 
   const form = useForm({
@@ -108,19 +109,47 @@ export function GenerateForm() {
     const fetchData = async () => {
       try {
         const userRes = await fetch("/api/auth/me");
+        let userData = null;
         if (userRes.ok) {
-          const { user: userData } = await userRes.json();
+          const resJson = await userRes.json();
+          userData = resJson.user;
           setUser(userData);
-          const primary =
-            userData.primaryPurpose || userData.accountPurpose || "portfolio";
-          setSelectedPurpose(primary);
+        }
 
-          const copy = getDashboardCopy(primary);
-          setDashboardCopy(copy);
+        const catRes = await fetch(
+          "/api/categories/available?context=generate",
+        );
+        const catData = await catRes.json();
+        if (catData.success) {
+          setCategories(catData.categories);
 
-          const themes = getRecommendedThemesForPurpose(primary);
-          setRecommendedTheme(themes[0] || "emerald");
-          form.setValue("themeKey", themes[0] || "emerald");
+          if (userData) {
+            const primary =
+              userData.primaryPurpose || userData.accountPurpose || "portfolio";
+            const found = catData.categories.find((c) => c.slug === primary);
+
+            // If primary is not selectable, try to find another selectable one from their list
+            if (found && !found.isSelectable) {
+              const alternative = catData.categories.find(
+                (c) =>
+                  userData.selectedPurposes?.includes(c.slug) && c.isSelectable,
+              );
+              if (alternative) {
+                setSelectedPurpose(alternative.slug);
+              } else {
+                setSelectedPurpose(primary); // Still set it but UI will block
+              }
+            } else {
+              setSelectedPurpose(primary);
+            }
+
+            const activePurpose =
+              found && found.isSelectable
+                ? primary
+                : catData.categories.find((c) => c.isSelectable)?.slug ||
+                  primary;
+            handlePurposeChange(activePurpose);
+          }
         }
 
         const infoRes = await fetch("/api/user/personal-info");
@@ -135,10 +164,51 @@ export function GenerateForm() {
       }
     };
     fetchData();
-  }, [form]);
+
+    // Realtime: refresh categories when admin updates happen
+    let bc = null;
+    try {
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        bc = new BroadcastChannel("sitecraft-data");
+        bc.addEventListener("message", async (ev) => {
+          const d = ev.data || {};
+          if (d.type === "categories:refresh") {
+            try {
+              const res = await fetch("/api/categories/available?context=generate");
+              const data = await res.json();
+              if (data.success) {
+                setCategories(data.categories);
+
+                // If current selected purpose is no longer selectable, clear selection and alert
+                const current = data.categories.find((c) => c.slug === selectedPurpose);
+                if (current && !current.isSelectable) {
+                  setSelectedPurpose("");
+                  alert("This category is no longer available.");
+                }
+              }
+            } catch (e) {
+              console.error("Failed to refresh categories:", e);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return () => {
+      if (bc) bc.close();
+    };
+  }, []);
 
   // Handle purpose change
   const handlePurposeChange = (purpose) => {
+    const category = categories.find((c) => c.slug === purpose);
+    if (category && !category.isSelectable) {
+      alert("This category is currently unavailable for generation.");
+      return;
+    }
+
     setSelectedPurpose(purpose);
     const copy = getDashboardCopy(purpose);
     setDashboardCopy(copy);

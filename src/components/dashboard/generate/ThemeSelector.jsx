@@ -14,15 +14,83 @@ export function ThemeSelector({
   accountPurpose = "portfolio",
 }) {
   const [showAll, setShowAll] = useState(false);
-  const themes = Object.values(WEBSITE_THEMES);
+  const [dbThemes, setDbThemes] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchThemes() {
+      try {
+        const res = await fetch("/api/themes/available?context=generate");
+        const data = await res.json();
+        if (data.success) {
+          setDbThemes(data.themes);
+
+          // Re-check if current value is still available
+          const isStillAvailable = data.themes.some((t) => t.themeId === value);
+          if (!isStillAvailable && data.themes.length > 0) {
+            onChange(data.themes[0].themeId);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch available themes:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchThemes();
+
+    // Polling for "realtime" visibility changes
+    const interval = setInterval(fetchThemes, 30000);
+
+    // Listen for realtime theme refresh requests
+    let bc = null;
+    try {
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        bc = new BroadcastChannel("sitecraft-data");
+        bc.addEventListener("message", (ev) => {
+          const d = ev.data || {};
+          if (d.type === "themes:refresh") fetchThemes();
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (bc) bc.close();
+    };
+  }, [value, onChange]);
+
+  const allPresets = Object.values(WEBSITE_THEMES);
+
+  // Only show themes that exist in presets AND are active in DB
+  const availableThemes = allPresets.filter((preset) =>
+    dbThemes.some((dbTheme) => dbTheme.themeId === preset.id),
+  );
 
   // Get recommended theme IDs for the purpose
   const recommendedIds = getRecommendedThemesForPurpose(accountPurpose);
 
-  const recommendedThemes = themes.filter((t) => recommendedIds.includes(t.id));
-  const otherThemes = themes.filter((t) => !recommendedIds.includes(t.id));
+  const recommendedThemes = availableThemes.filter((t) =>
+    recommendedIds.includes(t.id),
+  );
+  const otherThemes = availableThemes.filter(
+    (t) => !recommendedIds.includes(t.id),
+  );
 
-  const displayThemes = showAll ? themes : recommendedThemes;
+  const displayThemes = showAll ? availableThemes : recommendedThemes;
+
+  if (loading && dbThemes.length === 0) {
+    return (
+      <div className="flex items-center gap-2 py-4">
+        <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+          Warming Up Themes...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

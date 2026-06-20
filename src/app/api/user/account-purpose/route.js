@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { verifyAuthToken } from "@/lib/auth/tokens";
-import { siteCraftPersonalInfoCategories } from "@/lib/data";
+import { isCategorySelectable } from "@/lib/categories/categoryService";
 
 export async function PATCH(req) {
     try {
@@ -21,13 +21,14 @@ export async function PATCH(req) {
 
         const { accountPurpose } = await req.json();
 
-        // Validate accountPurpose against existing categories
-        const validPurposes = siteCraftPersonalInfoCategories.map(cat => cat.id);
-        if (!accountPurpose || !validPurposes.includes(accountPurpose)) {
-            return NextResponse.json({
-                success: false,
-                message: "Invalid account purpose. Please select a valid category."
-            }, { status: 400 });
+        // Validate accountPurpose availability server-side
+        if (!accountPurpose) {
+            return NextResponse.json({ success: false, message: "Invalid account purpose. Please select a valid category." }, { status: 400 });
+        }
+
+        const selectable = await isCategorySelectable(accountPurpose);
+        if (!selectable) {
+            return NextResponse.json({ success: false, message: "This category is currently unavailable." }, { status: 400 });
         }
 
         await dbConnect();

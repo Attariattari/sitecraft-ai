@@ -5,6 +5,8 @@ import AIUsageLog from "@/models/AIUsageLog";
 import { generateInputSchema, generateSafeSlug } from "@/lib/validations/siteValidation";
 import { generatePortfolioWebsite } from "@/lib/ai/siteGenerator";
 import { nanoid } from "nanoid";
+import { isCategorySelectable } from "@/lib/categories/categoryService";
+import { isThemeSelectable } from "@/lib/themes/themeService";
 
 export async function POST(request) {
   try {
@@ -15,6 +17,19 @@ export async function POST(request) {
 
     // Connect to database
     await dbConnect();
+
+    // Validate category and theme availability server-side
+    const categoryOk = await isCategorySelectable(validatedData.category);
+    if (!categoryOk) {
+      return NextResponse.json({ success: false, error: "This website purpose is currently unavailable." }, { status: 400 });
+    }
+
+    if (validatedData.themeKey) {
+      const themeOk = await isThemeSelectable(validatedData.themeKey);
+      if (!themeOk) {
+        return NextResponse.json({ success: false, error: "This theme is currently unavailable." }, { status: 400 });
+      }
+    }
 
     // Generate content using AI
     const generationResult = await generatePortfolioWebsite({

@@ -43,20 +43,44 @@ export function CategoriesSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     async function fetchCategories() {
       try {
         const res = await fetch("/api/categories/available?context=home");
         const data = await res.json();
-        if (data.success) {
+        if (data.success && mounted) {
           setCategories(data.categories);
         }
       } catch (err) {
         console.error("Failed to fetch home categories:", err);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     }
     fetchCategories();
+
+    // Listen for realtime data refresh requests via BroadcastChannel
+    let bc = null;
+    try {
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        bc = new BroadcastChannel("sitecraft-data");
+        bc.addEventListener("message", (ev) => {
+          const data = ev.data || {};
+          if (data.type === "categories:refresh") {
+            fetchCategories();
+          }
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return () => {
+      mounted = false;
+      if (bc) {
+        bc.close();
+      }
+    };
   }, []);
 
   // Filter categories by showOnHome (should already be done by API but to be safe)
@@ -198,9 +222,11 @@ export function CategoriesSection() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: i * 0.05 }}
                     className="group relative p-6 rounded-3xl bg-secondary/30 border border-border/40 hover:bg-card hover:border-primary/20 transition-all duration-300 flex flex-col items-center text-center overflow-hidden"
+                    title={item.lockedReason || "Enabling soon"}
                   >
-                    <div className="absolute top-0 right-0 px-2 py-1 bg-muted text-[8px] font-black uppercase tracking-tighter text-muted-foreground rounded-bl-xl border-l border-b border-border opacity-60 group-hover:opacity-100 transition-opacity">
-                      {item.isLocked ? "Planned" : "Soon"}
+                    <div className="absolute top-0 right-0 px-2 py-1 bg-muted text-[8px] font-black uppercase tracking-tighter text-muted-foreground rounded-bl-xl border-l border-b border-border opacity-60 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                      <Lock className="w-2 h-2" />
+                      {item.displayStatus || "Planned"}
                     </div>
 
                     <div className="size-14 rounded-2xl bg-background border border-border flex items-center justify-center mb-4 group-hover:scale-110 group-hover:border-primary/30 group-hover:text-primary shadow-sm transition-all duration-500 text-muted-foreground/60">
@@ -216,7 +242,7 @@ export function CategoriesSection() {
 
                     <div className="mt-4 pt-4 border-t border-border/50 w-full">
                       <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 group-hover:text-primary/60 transition-colors">
-                        Enabling Soon
+                        {item.lockedReason || "Enabling Soon"}
                       </span>
                     </div>
                   </motion.div>

@@ -17,20 +17,40 @@ export default function SignupPage() {
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
     async function fetchCategories() {
       try {
         const res = await fetch("/api/categories/available?context=signup");
         const data = await res.json();
-        if (data.success) {
+        if (data.success && mounted) {
           setCategories(data.categories);
         }
       } catch (err) {
         console.error("Failed to fetch signup categories:", err);
       } finally {
-        setCategoriesLoading(false);
+        if (mounted) setCategoriesLoading(false);
       }
     }
     fetchCategories();
+
+    // Realtime refresh channel
+    let bc = null;
+    try {
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        bc = new BroadcastChannel("sitecraft-data");
+        bc.addEventListener("message", (ev) => {
+          const d = ev.data || {};
+          if (d.type === "categories:refresh") fetchCategories();
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return () => {
+      mounted = false;
+      if (bc) bc.close();
+    };
   }, []);
 
   const {
@@ -289,8 +309,13 @@ export default function SignupPage() {
                       Select your goal
                     </option>
                     {categories.map((cat) => (
-                      <option key={cat._id} value={cat.slug}>
-                        {cat.label}
+                      <option
+                        key={cat._id}
+                        value={cat.slug}
+                        disabled={!cat.isSelectable}
+                        title={cat.lockedReason || (cat.isSelectable ? "" : "This category is currently unavailable.")}
+                      >
+                        {cat.label} {cat.isSelectable ? "" : `(${cat.displayStatus || "Unavailable"})`}
                       </option>
                     ))}
                   </>

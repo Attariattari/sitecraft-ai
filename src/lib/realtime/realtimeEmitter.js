@@ -64,4 +64,20 @@ export const realtimeEmitter = {
 
         // io.to("super-admin").emit(event, payload);
     },
+
+    /**
+     * Emit to all users (creates notifications for everyone via DB)
+     * Use with caution — intended for system-wide changes like category/theme updates.
+     */
+    async emitToAll(event, payload = {}) {
+        console.log(`[Realtime] Emitting ${event} to all users`, payload);
+
+        // Iterate all users and create a notification + emit stub
+        const users = await User.find({}).select("_id");
+        for (const u of users) {
+            await this.emitToUser(u._id, event, payload);
+        }
+
+        // Placeholder for socket emit to all: io.emit(event, payload);
+    },
 };

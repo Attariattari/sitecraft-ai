@@ -172,6 +172,37 @@ export function RealtimeProvider({ children }) {
         REALTIME_EVENTS.SESSION.FORCE_LOGOUT,
         handleForceLogout,
       );
+      // Category & Theme updates -> notify open tabs to refresh data
+      const handleCategoryUpdated = (payload) => {
+        addToast({ title: "Category updated", message: payload?.message || "Category availability changed.", type: "info" });
+        try {
+          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            const bc = new BroadcastChannel("sitecraft-data");
+            bc.postMessage({ type: "categories:refresh", payload });
+            bc.close();
+          }
+        } catch (e) {
+          // ignore
+        }
+      };
+
+      const handleThemeUpdated = (payload) => {
+        addToast({ title: "Theme updated", message: payload?.message || "Theme availability changed.", type: "info" });
+        try {
+          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            const bc = new BroadcastChannel("sitecraft-data");
+            bc.postMessage({ type: "themes:refresh", payload });
+            bc.close();
+          }
+        } catch (e) {
+          // ignore
+        }
+      };
+
+      realtimeClient.on(REALTIME_EVENTS.CATEGORY.LIST_REFRESH, handleCategoryUpdated);
+      realtimeClient.on(REALTIME_EVENTS.CATEGORY.UPDATED, handleCategoryUpdated);
+      realtimeClient.on(REALTIME_EVENTS.THEME.LIST_REFRESH, handleThemeUpdated);
+      realtimeClient.on(REALTIME_EVENTS.THEME.UPDATED, handleThemeUpdated);
       realtimeClient.on(REALTIME_EVENTS.USER.RESTRICTED, handleUserRestricted);
       realtimeClient.on(
         REALTIME_EVENTS.USER.UNRESTRICTED,

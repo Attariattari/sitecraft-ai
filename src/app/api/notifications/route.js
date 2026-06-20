@@ -7,7 +7,7 @@ export async function GET(req) {
     try {
         const user = await getCurrentUser();
         if (!user) {
-            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 }, );
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
         await dbConnect();
@@ -30,8 +30,8 @@ export async function GET(req) {
             unreadCount,
         });
     } catch (error) {
-        console.error("Notifications fetch error:", error);
-        return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 }, );
+        console.error("Notifications fetch error:", error?.message || error);
+        return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
     }
 }
 
@@ -39,18 +39,18 @@ export async function PATCH() {
     try {
         const user = await getCurrentUser();
         if (!user) {
-            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 }, );
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
         await dbConnect();
-        await Notification.updateMany({ userId: user.id, read: false }, { read: true }, );
+        await Notification.updateMany({ userId: user.id, read: false }, { read: true });
 
         return NextResponse.json({
             success: true,
             message: "All notifications marked as read",
         });
     } catch (error) {
-        console.error("Mark all read error:", error);
-        return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 }, );
+        console.error("Mark all read error:", error?.message || error);
+        return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
     }
 }

@@ -12,6 +12,14 @@ export const REALTIME_EVENTS = {
     SESSION: {
         FORCE_LOGOUT: "session:force-logout",
     },
+    CATEGORY: {
+        UPDATED: "category:updated",
+        LIST_REFRESH: "category:list-refresh",
+    },
+    THEME: {
+        UPDATED: "theme:updated",
+        LIST_REFRESH: "theme:list-refresh",
+    },
     NOTIFICATION: {
         NEW: "notification:new",
     },
