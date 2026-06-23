@@ -13,7 +13,7 @@ export async function PATCH(req, { params }) {
         const actor = await getCurrentUser();
         const { id } = await params;
 
-        if (!actor || (actor.role !== "admin" && actor.role !== "super-admin")) {
+        if (!actor || actor.role !== "super-admin") {
             return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 }, );
         }
 
@@ -26,6 +26,13 @@ export async function PATCH(req, { params }) {
         assertNotRootSuperAdminTarget(targetUser);
 
         targetUser.status = "active";
+        targetUser.restrictedAt = undefined;
+        targetUser.restrictedBy = undefined;
+        targetUser.restrictedReason = "";
+        targetUser.restrictionReason = "";
+        targetUser.suspendedAt = undefined;
+        targetUser.suspendedBy = undefined;
+        targetUser.suspendedReason = "";
         if (
             targetUser.restrictionAppeal &&
             targetUser.restrictionAppeal.status === "pending"
@@ -51,6 +58,7 @@ export async function PATCH(req, { params }) {
             REALTIME_EVENTS.USER.UNRESTRICTED, {
                 title: "Access Restored",
                 message: "Your account access has been fully restored.",
+                severity: "success",
             },
         );
 

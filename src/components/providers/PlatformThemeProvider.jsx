@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { applyPlatformTheme } from "@/lib/theme/applyPlatformTheme";
+import { createRealtimeBroadcastChannel } from "@/lib/realtime/broadcastChannel";
 
 const MODE_STORAGE_KEY = "sitecraft_platform_theme_mode";
 const LEGACY_THEME_STORAGE_KEY = "sitecraft_platform_theme";
@@ -20,6 +21,15 @@ function removeLegacyThemeChoice() {
   }
 }
 
+function getStoredMode() {
+  try {
+    const stored = localStorage.getItem(MODE_STORAGE_KEY);
+    return stored === "light" || stored === "dark" ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
 export function usePlatformThemeContext() {
   return useContext(PlatformThemeContext);
 }
@@ -28,6 +38,7 @@ export function usePlatformThemeContext() {
  * Loads the Super Admin platform theme and lets users override only light/dark mode.
  */
 export function PlatformThemeProvider({ children, initialTheme = null }) {
+  const themeSignatureRef = useRef("");
   const [theme, setTheme] = useState(initialTheme);
   const [source, setSource] = useState("fallback");
   const [mode, setMode] = useState(normalizeMode(initialTheme?.defaultMode));
@@ -42,12 +53,6 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
     async ({ showToast = false } = {}) => {
       try {
         removeLegacyThemeChoice();
-        try {
-          localStorage.removeItem(MODE_STORAGE_KEY);
-        } catch {
-          // Storage can be unavailable in private browsing.
-        }
-
         const res = await fetch("/api/platform-theme", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load platform theme");
 
@@ -55,15 +60,28 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
         const nextTheme = data.theme;
         if (!nextTheme) return;
 
-        const nextMode = normalizeMode(nextTheme.defaultMode);
+        const storedMode = getStoredMode();
+        const nextMode = nextTheme.allowUserOverride && storedMode
+          ? storedMode
+          : normalizeMode(nextTheme.defaultMode);
         const nextResolvedMode = applyPlatformTheme(nextTheme, nextMode);
+
+        const nextSignature = [
+          nextTheme.activeThemeId,
+          nextTheme.lightThemeId,
+          nextTheme.darkThemeId,
+          nextTheme.defaultMode,
+          nextTheme.allowUserOverride,
+        ].join(":");
+        const changed = themeSignatureRef.current && themeSignatureRef.current !== nextSignature;
+        themeSignatureRef.current = nextSignature;
 
         setTheme(nextTheme);
         setSource(data.source || "fallback");
         setMode(nextMode);
         setResolvedMode(nextResolvedMode);
 
-        if (showToast) toast.success("Platform theme updated.");
+        if (showToast || changed) toast.success("Platform theme updated.");
       } catch (error) {
         console.error("Failed to fetch platform theme:", error);
       } finally {
@@ -82,17 +100,22 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
   }, [fetchAndApplyTheme]);
 
   useEffect(() => {
-    try {
-      if (!("BroadcastChannel" in window)) return;
+    const id = window.setInterval(() => {
+      fetchAndApplyTheme();
+    }, 5000);
 
-      const bc = new BroadcastChannel("sitecraft-platform-theme");
-      bc.addEventListener("message", (event) => {
-        if (event.data?.type === "platform-theme:updated") {
+    return () => window.clearInterval(id);
+  }, [fetchAndApplyTheme]);
+
+  useEffect(() => {
+    try {
+      const bc = createRealtimeBroadcastChannel((message) => {
+        if (message?.type === "platform-theme:updated") {
           fetchAndApplyTheme({ showToast: true });
         }
       });
 
-      return () => bc.close();
+      return () => bc?.close();
     } catch (error) {
       console.warn("BroadcastChannel not available:", error);
     }

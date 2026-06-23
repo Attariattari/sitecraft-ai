@@ -14,6 +14,7 @@ import {
   Moon,
   ShieldCheck,
   ExternalLink,
+  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/context/UserContext";
@@ -183,56 +184,79 @@ export function AdminTopbar() {
     ),
   ];
 
+  const currentPage = breadcrumb[breadcrumb.length - 1] || "Admin";
+
+  const openMobileSidebar = () => {
+    window.dispatchEvent(new Event("sitecraft:open-admin-sidebar"));
+  };
+
   return (
-    <header className="h-14 border-b border-border bg-card/60 backdrop-blur-md sticky top-0 z-30 flex items-center px-4 lg:px-6 gap-4">
-      {/* Breadcrumb */}
-      <div className="hidden lg:flex items-center gap-1.5 min-w-0 mr-auto">
-        {breadcrumb.map((crumb, i) => (
-          <span key={i} className="flex items-center gap-1.5">
-            {i > 0 && (
-              <span className="text-muted-foreground/40 text-xs">/</span>
-            )}
-            <span
-              className={cn(
-                "text-sm font-semibold",
-                i === breadcrumb.length - 1
-                  ? "text-foreground"
-                  : "text-muted-foreground",
-              )}
-            >
-              {crumb}
-            </span>
-          </span>
-        ))}
+    <header className="h-16 border-b border-border/70 bg-card/85 backdrop-blur-xl sticky top-0 z-30 flex items-center px-3 sm:px-4 lg:px-6 gap-3 shadow-sm shadow-black/[0.02]">
+      <div className="flex items-center gap-3 min-w-0 mr-auto">
+        <button
+          onClick={openMobileSidebar}
+          className="lg:hidden inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-foreground shadow-sm hover:bg-muted transition-colors"
+          aria-label="Open admin menu"
+          title="Open admin menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="min-w-0">
+          <p className="lg:hidden text-sm font-bold text-foreground truncate">
+            {currentPage}
+          </p>
+          <div className="hidden lg:flex items-center gap-1.5 min-w-0">
+            {breadcrumb.map((crumb, i) => (
+              <span key={i} className="flex items-center gap-1.5">
+                {i > 0 && (
+                  <span className="text-muted-foreground/40 text-xs">/</span>
+                )}
+                <span
+                  className={cn(
+                    "text-sm font-semibold whitespace-nowrap",
+                    i === breadcrumb.length - 1
+                      ? "text-foreground"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {crumb}
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Search */}
-      <div
-        className={cn(
-          "flex items-center gap-2 h-9 px-3 rounded-xl border transition-all duration-300 bg-muted/50",
-          searchFocused
-            ? "border-primary/50 bg-background shadow-md shadow-primary/10 w-64"
-            : "border-border w-48",
-        )}
-      >
-        <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-        <input
-          type="text"
-          placeholder="Search admin..."
-          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none min-w-0"
-          onFocus={() => setSearchFocused(true)}
-          onBlur={() => setSearchFocused(false)}
-        />
+      <div className="ml-auto flex items-center justify-end gap-1.5 sm:gap-2">
+        {/* Search */}
+        <div
+          className={cn(
+            "hidden md:flex items-center gap-2 h-10 px-3 rounded-xl border transition-all duration-300 bg-muted/50",
+            searchFocused
+              ? "border-primary/50 bg-background shadow-md shadow-primary/10 w-72"
+              : "border-border w-52",
+          )}
+        >
+          <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <input
+            type="text"
+            placeholder="Search admin..."
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none min-w-0"
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+          />
+        </div>
+
+        {/* Notifications */}
+        <NotificationDropdown />
+
+        {/* Theme */}
+        <ThemeToggle />
+
+        {/* User */}
+        <AdminUserMenu />
       </div>
-
-      {/* Notifications */}
-      <NotificationDropdown />
-
-      {/* Theme */}
-      <ThemeToggle />
-
-      {/* User */}
-      <AdminUserMenu />
     </header>
   );
 }

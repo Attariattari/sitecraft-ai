@@ -72,6 +72,16 @@ export const realtimeEmitter = {
     async emitToAll(event, payload = {}) {
         console.log(`[Realtime] Emitting ${event} to all users`, payload);
 
+        if (
+            event === REALTIME_EVENTS.PLATFORM_THEME.UPDATED ||
+            event === REALTIME_EVENTS.THEME.UPDATED ||
+            event === REALTIME_EVENTS.THEME.LIST_REFRESH ||
+            event === REALTIME_EVENTS.CATEGORY.UPDATED ||
+            event === REALTIME_EVENTS.CATEGORY.LIST_REFRESH
+        ) {
+            return;
+        }
+
         // Iterate all users and create a notification + emit stub
         const users = await User.find({}).select("_id");
         for (const u of users) {

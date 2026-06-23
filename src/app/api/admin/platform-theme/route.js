@@ -5,6 +5,7 @@ import PlatformThemeSetting from "@/models/PlatformThemeSetting";
 import { realtimeEmitter } from "@/lib/realtime/realtimeEmitter";
 import { REALTIME_EVENTS } from "@/lib/realtime/events";
 import { themeExistsForPlatformTheme } from "@/lib/themes/themeService";
+import { createActivityLog } from "@/lib/admin/adminHelpers";
 
 /**
  * GET /api/admin/platform-theme
@@ -103,6 +104,19 @@ export async function PATCH(req) {
       },
       user.id
     );
+
+    await createActivityLog({
+      actorId: user.id,
+      action: "platform_theme_updated",
+      description: "Platform theme updated",
+      metadata: {
+        lightThemeId: updated.lightThemeId,
+        darkThemeId: updated.darkThemeId,
+        defaultMode: updated.defaultMode,
+        allowUserOverride: updated.allowUserOverride,
+      },
+      req,
+    });
 
     // Emit realtime event for all clients
     try {

@@ -48,9 +48,7 @@ export function middleware(request) {
                 return NextResponse.redirect(new URL("/restricted", request.url));
             }
             if (decodedPayload.status === "suspended") {
-                const url = new URL("/login", request.url);
-                url.searchParams.set("error", "account_suspended");
-                return NextResponse.redirect(url);
+                return NextResponse.redirect(new URL("/suspended", request.url));
             }
         } catch (error) {
             // Malformed token -> treat as guest
@@ -90,6 +88,10 @@ export function middleware(request) {
 
             if (decodedPayload.status === "restricted" && !isRootEmail2 && !isRootFlag2) {
                 return NextResponse.redirect(new URL("/restricted", request.url));
+            }
+
+            if (decodedPayload.status === "suspended") {
+                return NextResponse.redirect(new URL("/suspended", request.url));
             }
 
             if (
@@ -149,6 +151,9 @@ export function middleware(request) {
                 if (decodedPayload.status === "restricted" && !isRootEmail3 && !isRootFlag3) {
                     return NextResponse.redirect(new URL("/restricted", request.url));
                 }
+                if (decodedPayload.status === "suspended") {
+                    return NextResponse.redirect(new URL("/suspended", request.url));
+                }
             } catch (e) {
                 return NextResponse.next();
             }
@@ -170,5 +175,6 @@ export const config = {
         "/forgot-password",
         "/reset-password",
         "/restricted/:path*",
+        "/suspended/:path*",
     ],
 };

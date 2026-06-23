@@ -11,6 +11,10 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { realtimeClient } from "@/lib/realtime/realtimeClient";
 import { REALTIME_EVENTS } from "@/lib/realtime/events";
+import {
+  broadcastRealtimeMessage,
+  createRealtimeBroadcastChannel,
+} from "@/lib/realtime/broadcastChannel";
 import { Bell, Info, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -52,8 +56,9 @@ export function RealtimeProvider({ children }) {
 
       // (BroadcastChannel setup moved below after handlers are defined)
 
-      const handleForceLogout = async (payload) => {
+      const handleForceLogout = async (payload = {}, options = {}) => {
         const reason = (payload.reason || "").toLowerCase();
+        const redirectTo = payload.redirectTo;
         // Attempt server-side logout to ensure cookie removal
         try {
           await fetch("/api/auth/logout", { method: "POST" });
@@ -62,26 +67,27 @@ export function RealtimeProvider({ children }) {
         }
         setUser(null);
 
-        // Restricted/suspended account reasons -> go to /restricted
-        if (reason.includes("restricted") || reason.includes("suspend") || reason.includes("account_restricted") || reason.includes("account suspended")) {
-          addToast({ title: "Access Restricted", message: payload.reason || "Your access has been restricted.", type: "error" });
+        if (options.broadcast !== false) {
+          broadcastRealtimeMessage({
+            type: REALTIME_EVENTS.SESSION.FORCE_LOGOUT,
+            payload,
+          });
+        }
+
+        if (redirectTo === "/restricted" || reason.includes("restricted")) {
+          addToast({ title: "Access Restricted", message: "Your account access has been restricted.", type: "error" });
           router.push("/restricted");
           return;
         }
 
-        // Broadcast logout to other tabs
-        try {
-          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-            const bcTemp = new BroadcastChannel("sitecraft-auth");
-            bcTemp.postMessage({ type: "logout" });
-            bcTemp.close();
-          }
-        } catch (e) {
-          // ignore
+        if (redirectTo === "/suspended" || reason.includes("suspend")) {
+          addToast({ title: "Account Suspended", message: "Your account has been suspended.", type: "error" });
+          router.push("/suspended");
+          return;
         }
 
         // Otherwise treat as session expired/invalid -> go to login on dashboard/admin, stay on public
-        addToast({ title: "Session Expired", message: payload.reason || "Your session has expired. Please log in again.", type: "error" });
+        addToast({ title: "Session Ended", message: "Your session was ended. Please sign in again.", type: "error" });
         try {
           const path = typeof window !== "undefined" ? window.location.pathname : "";
           if (path.startsWith("/dashboard") || path.startsWith("/admin")) {
@@ -99,6 +105,20 @@ export function RealtimeProvider({ children }) {
             payload.message || "Your account access has been restricted.",
           type: "error",
         });
+        handleForceLogout({ ...payload, reason: "restricted", redirectTo: "/restricted" });
+      };
+
+      const handleUserSuspended = (payload) => {
+        addToast({
+          title: "Account Suspended",
+          message: payload.message || "Your account has been suspended.",
+          type: "error",
+        });
+        handleForceLogout({ ...payload, reason: "suspended", redirectTo: "/suspended" });
+      };
+
+      const handleSessionRevoked = (payload) => {
+        handleForceLogout({ ...payload, reason: "session-revoked", redirectTo: "/login" });
       };
 
       const handleUserUnrestricted = () => {
@@ -131,12 +151,7 @@ export function RealtimeProvider({ children }) {
       };
 
       // Setup cross-tab BroadcastChannel for instant logout across tabs
-      const bc = typeof window !== "undefined" && "BroadcastChannel" in window
-        ? new BroadcastChannel("sitecraft-auth")
-        : null;
-
-      const bcHandler = (ev) => {
-        const data = ev.data || {};
+      const bcHandler = (data = {}) => {
         if (data?.type === "logout") {
           setUser(null);
           try {
@@ -161,26 +176,26 @@ export function RealtimeProvider({ children }) {
         }
         if (data?.type === REALTIME_EVENTS.SESSION.FORCE_LOGOUT) {
           // reuse existing handler for a consistent UI
-          handleForceLogout(data.payload || {});
+          handleForceLogout(data.payload || {}, { broadcast: false });
         }
       };
 
-      if (bc) bc.addEventListener("message", bcHandler);
+      const bc = createRealtimeBroadcastChannel(bcHandler);
 
       // Register listeners
       realtimeClient.on(
         REALTIME_EVENTS.SESSION.FORCE_LOGOUT,
         handleForceLogout,
       );
+      realtimeClient.on(
+        REALTIME_EVENTS.SESSION.LEGACY_FORCE_LOGOUT,
+        handleForceLogout,
+      );
       // Category & Theme updates -> notify open tabs to refresh data
       const handleCategoryUpdated = (payload) => {
         addToast({ title: "Category updated", message: payload?.message || "Category availability changed.", type: "info" });
         try {
-          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-            const bc = new BroadcastChannel("sitecraft-data");
-            bc.postMessage({ type: "categories:refresh", payload });
-            bc.close();
-          }
+          broadcastRealtimeMessage({ type: "categories:refresh", payload });
         } catch (e) {
           // ignore
         }
@@ -189,28 +204,20 @@ export function RealtimeProvider({ children }) {
       const handleThemeUpdated = (payload) => {
         addToast({ title: "Theme updated", message: payload?.message || "Theme availability changed.", type: "info" });
         try {
-          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-            const bc = new BroadcastChannel("sitecraft-data");
-            bc.postMessage({ type: "themes:refresh", payload });
-            bc.close();
-          }
+          broadcastRealtimeMessage({ type: "themes:refresh", payload });
         } catch (e) {
           // ignore
         }
       };
 
       const handlePlatformThemeUpdated = (payload) => {
-        addToast({ 
+        if (!payload?.silent) addToast({ 
           title: payload?.title || "Platform Theme Updated",
-          message: payload?.message || "The platform theme has been updated.",
+          message: payload?.message || "Platform theme updated.",
           type: "info"
         });
         try {
-          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-            const bc = new BroadcastChannel("sitecraft-platform-theme");
-            bc.postMessage({ type: "platform-theme:updated", payload });
-            bc.close();
-          }
+          broadcastRealtimeMessage({ type: "platform-theme:updated", payload });
         } catch (e) {
           // ignore
         }
@@ -222,6 +229,8 @@ export function RealtimeProvider({ children }) {
       realtimeClient.on(REALTIME_EVENTS.THEME.UPDATED, handleThemeUpdated);
       realtimeClient.on(REALTIME_EVENTS.PLATFORM_THEME.UPDATED, handlePlatformThemeUpdated);
       realtimeClient.on(REALTIME_EVENTS.USER.RESTRICTED, handleUserRestricted);
+      realtimeClient.on(REALTIME_EVENTS.USER.SUSPENDED, handleUserSuspended);
+      realtimeClient.on(REALTIME_EVENTS.USER.SESSION_REVOKED, handleSessionRevoked);
       realtimeClient.on(
         REALTIME_EVENTS.USER.UNRESTRICTED,
         handleUserUnrestricted,
@@ -231,7 +240,6 @@ export function RealtimeProvider({ children }) {
 
       return () => {
         if (bc) {
-          bc.removeEventListener("message", bcHandler);
           bc.close();
         }
         realtimeClient.off(
@@ -239,8 +247,20 @@ export function RealtimeProvider({ children }) {
           handleForceLogout,
         );
         realtimeClient.off(
+          REALTIME_EVENTS.SESSION.LEGACY_FORCE_LOGOUT,
+          handleForceLogout,
+        );
+        realtimeClient.off(
           REALTIME_EVENTS.USER.RESTRICTED,
           handleUserRestricted,
+        );
+        realtimeClient.off(
+          REALTIME_EVENTS.USER.SUSPENDED,
+          handleUserSuspended,
+        );
+        realtimeClient.off(
+          REALTIME_EVENTS.USER.SESSION_REVOKED,
+          handleSessionRevoked,
         );
         realtimeClient.off(
           REALTIME_EVENTS.USER.UNRESTRICTED,

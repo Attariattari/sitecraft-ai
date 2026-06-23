@@ -9,6 +9,7 @@ export class RealtimeClient {
         this.intervalId = null;
         this.lastCheckedHeader = null;
         this._hadSuccessfulFetch = false;
+        this._focusHandler = null;
     }
 
     on(event, callback) {
@@ -32,7 +33,48 @@ export class RealtimeClient {
         this.listeners.get(event).forEach((cb) => cb(payload));
     }
 
-    startPolling(interval = 10000) {
+    async checkAuthState() {
+        try {
+            const res = await fetch("/api/auth/me", { cache: "no-store" });
+            if (!res.ok) return;
+
+            const data = await res.json();
+            if (!data.success) return;
+
+            if (data.authState === "restricted") {
+                this.emit("user:restricted", {
+                    message: "Your account access has been restricted.",
+                    status: "restricted",
+                });
+                this.emit("auth:force-logout", {
+                    reason: "restricted",
+                    redirectTo: "/restricted",
+                });
+            }
+
+            if (data.authState === "suspended") {
+                this.emit("user:suspended", {
+                    message: "Your account has been suspended.",
+                    status: "suspended",
+                });
+                this.emit("auth:force-logout", {
+                    reason: "suspended",
+                    redirectTo: "/suspended",
+                });
+            }
+
+            if (data.authState === "guest" && this._hadSuccessfulFetch) {
+                this.emit("user:session-revoked", {
+                    reason: "session-revoked",
+                    redirectTo: "/login",
+                });
+            }
+        } catch (err) {
+            console.error("Auth realtime check error:", err);
+        }
+    }
+
+    startPolling(interval = 3000) {
         if (this.intervalId) return;
 
         this.intervalId = setInterval(async() => {
@@ -66,8 +108,9 @@ export class RealtimeClient {
                 // the login cookie but the poll returns 401 immediately).
                 if (res.status === 401) {
                     if (this._hadSuccessfulFetch) {
-                        this.emit("session:force-logout", {
+                        this.emit("auth:force-logout", {
                             reason: "Unauthorized or Restricted",
+                            redirectTo: "/login",
                         });
                     } else {
                         // Ignore the first auth failure and log for debugging.
@@ -77,13 +120,29 @@ export class RealtimeClient {
             } catch (err) {
                 console.error("Polling error:", err);
             }
+
+            await this.checkAuthState();
         }, interval);
+
+        this._focusHandler = () => {
+            if (document.visibilityState === "visible") {
+                this.checkAuthState();
+                this.emit("platform-theme:updated", { silent: true });
+            }
+        };
+        window.addEventListener("focus", this._focusHandler);
+        document.addEventListener("visibilitychange", this._focusHandler);
     }
 
     stopPolling() {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
+        }
+        if (this._focusHandler && typeof window !== "undefined") {
+            window.removeEventListener("focus", this._focusHandler);
+            document.removeEventListener("visibilitychange", this._focusHandler);
+            this._focusHandler = null;
         }
     }
 }

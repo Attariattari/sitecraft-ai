@@ -42,19 +42,6 @@ export async function GET() {
       });
     }
 
-    // If DB sessionVersion mismatch, treat as guest (token invalidated)
-    const tokenVersion =
-      decoded.sessionVersion !== undefined ? decoded.sessionVersion : 0;
-    const dbVersion = user.sessionVersion || 0;
-    if (dbVersion !== tokenVersion) {
-      return NextResponse.json({
-        success: true,
-        authenticated: false,
-        authState: "guest",
-        user: null,
-      });
-    }
-
     // Restricted or suspended from DB
     if (user.status === "restricted") {
       return NextResponse.json({
@@ -70,6 +57,21 @@ export async function GET() {
         authenticated: true,
         authState: "suspended",
         user: safeUserPayload(user, decoded.loginProvider),
+      });
+    }
+
+    // If DB sessionVersion mismatch, treat active users as revoked sessions.
+    // Restricted/suspended users are handled above so the client can route
+    // them to the correct status page instead of a generic login screen.
+    const tokenVersion =
+      decoded.sessionVersion !== undefined ? decoded.sessionVersion : 0;
+    const dbVersion = user.sessionVersion || 0;
+    if (dbVersion !== tokenVersion) {
+      return NextResponse.json({
+        success: true,
+        authenticated: false,
+        authState: "guest",
+        user: null,
       });
     }
 

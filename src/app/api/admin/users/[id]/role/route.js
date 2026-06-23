@@ -39,6 +39,7 @@ export async function PATCH(req, { params }) {
 
         const oldRole = targetUser.role;
         targetUser.role = newRole;
+        targetUser.sessionVersion += 1;
 
         // Super admins always get at least "pro" plan
         if (newRole === "super-admin" && ["free", "basic"].includes(targetUser.plan)) {
@@ -64,6 +65,7 @@ export async function PATCH(req, { params }) {
                 title: "Role Updated",
                 message: `Your account role has been changed from ${oldRole} to ${newRole}.`,
                 metadata: { oldRole, newRole },
+                severity: "info",
             },
         );
 

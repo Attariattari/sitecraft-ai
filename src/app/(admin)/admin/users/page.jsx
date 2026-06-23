@@ -133,6 +133,51 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleSuspend = async (userId) => {
+    const reason = window.prompt("Reason for suspending this account:");
+    if (!reason?.trim()) return;
+
+    setProcessing(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/suspend`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUsers(
+          users.map((u) =>
+            u._id === userId ? { ...u, status: "suspended" } : u,
+          ),
+        );
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      console.error("Suspend error:", err);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleRevokeSessions = async (userId) => {
+    if (!window.confirm("End all active sessions for this user?")) return;
+
+    setProcessing(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/revoke-sessions`, {
+        method: "PATCH",
+      });
+      const data = await res.json();
+      if (!data.success) alert(data.message);
+    } catch (err) {
+      console.error("Revoke sessions error:", err);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
   const handleRestrict = async () => {
     const { userId, reason } = restrictionModal;
     if (!reason.trim()) return alert("Please provide a reason.");
@@ -452,20 +497,38 @@ export default function AdminUsersPage() {
 
                             {/* Restrict Actions */}
                             {u.status === "active" ? (
-                              <button
-                                onClick={() =>
-                                  setRestrictionModal({
-                                    open: true,
-                                    userId: u._id,
-                                    reason: "",
-                                  })
-                                }
-                                disabled={processing === u._id}
-                                className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-all"
-                                title="Restrict Access"
-                              >
-                                <Lock className="w-4 h-4" />
-                              </button>
+                              <>
+                                <button
+                                  onClick={() =>
+                                    setRestrictionModal({
+                                      open: true,
+                                      userId: u._id,
+                                      reason: "",
+                                    })
+                                  }
+                                  disabled={processing === u._id}
+                                  className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-all"
+                                  title="Restrict Access"
+                                >
+                                  <Lock className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleSuspend(u._id)}
+                                  disabled={processing === u._id}
+                                  className="p-2 rounded-lg bg-orange-500/10 text-orange-500 hover:bg-orange-500 hover:text-white transition-all"
+                                  title="Suspend Account"
+                                >
+                                  <AlertTriangle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleRevokeSessions(u._id)}
+                                  disabled={processing === u._id}
+                                  className="p-2 rounded-lg bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-all"
+                                  title="Revoke Sessions"
+                                >
+                                  <ShieldAlert className="w-4 h-4" />
+                                </button>
+                              </>
                             ) : (
                               <button
                                 onClick={() => handleUnrestrict(u._id)}

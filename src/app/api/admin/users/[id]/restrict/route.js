@@ -14,8 +14,7 @@ export async function PATCH(req, { params }) {
         const actor = await getCurrentUser();
         const { id } = await params;
 
-        // Only Admin or Super Admin
-        if (!actor || (actor.role !== "admin" && actor.role !== "super-admin")) {
+        if (!actor || actor.role !== "super-admin") {
             return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 }, );
         }
 
@@ -36,6 +35,7 @@ export async function PATCH(req, { params }) {
         targetUser.status = "restricted";
         targetUser.restrictedAt = new Date();
         targetUser.restrictedBy = actor.id;
+        targetUser.restrictedReason = reason;
         targetUser.restrictionReason = reason;
         targetUser.sessionVersion += 1; // Force logout/session invalidation
         await targetUser.save();
@@ -55,15 +55,17 @@ export async function PATCH(req, { params }) {
             targetUser._id,
             REALTIME_EVENTS.USER.RESTRICTED, {
                 title: "Access Restricted",
-                message: `Your access has been restricted due to: ${reason}`,
+                message: "Your account access has been restricted.",
                 metadata: { reason },
+                severity: "error",
             },
         );
 
         await realtimeEmitter.emitToUser(
             targetUser._id,
             REALTIME_EVENTS.SESSION.FORCE_LOGOUT, {
-                reason: "Account restricted by administrator",
+                reason: "restricted",
+                redirectTo: "/restricted",
             },
         );
 

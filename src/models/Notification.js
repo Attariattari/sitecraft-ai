@@ -25,6 +25,20 @@ const NotificationSchema = new mongoose.Schema({
         default: false,
         index: true,
     },
+    isRead: {
+        type: Boolean,
+        default: false,
+        index: true,
+    },
+    severity: {
+        type: String,
+        enum: ["info", "success", "warning", "error"],
+        default: "info",
+    },
+    actionUrl: {
+        type: String,
+        default: "",
+    },
     metadata: {
         type: mongoose.Schema.Types.Mixed,
     },

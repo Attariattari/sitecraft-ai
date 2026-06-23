@@ -1,35 +1,47 @@
+import {
+  REALTIME_EVENTS as FLAT_REALTIME_EVENTS,
+  REALTIME_ROOMS as SECURE_REALTIME_ROOMS,
+  LEGACY_REALTIME_EVENTS,
+} from "./realtimeEvents";
+
 export const REALTIME_EVENTS = {
-    USER: {
-        RESTRICTED: "user:restricted",
-        UNRESTRICTED: "user:unrestricted",
-        ROLE_UPDATED: "user:role-updated",
-        APPEAL_SUBMITTED: "user:appeal-submitted",
-    },
-    ADMIN: {
-        USER_UPDATED: "admin:user-updated",
-        ACCESS_REQUEST: "admin:access-request",
-    },
-    SESSION: {
-        FORCE_LOGOUT: "session:force-logout",
-    },
-    CATEGORY: {
-        UPDATED: "category:updated",
-        LIST_REFRESH: "category:list-refresh",
-    },
-    THEME: {
-        UPDATED: "theme:updated",
-        LIST_REFRESH: "theme:list-refresh",
-    },
-    PLATFORM_THEME: {
-        UPDATED: "platform-theme:updated",
-    },
-    NOTIFICATION: {
-        NEW: "notification:new",
-    },
+  ...FLAT_REALTIME_EVENTS,
+  USER: {
+    RESTRICTED: FLAT_REALTIME_EVENTS.USER_RESTRICTED,
+    SUSPENDED: FLAT_REALTIME_EVENTS.USER_SUSPENDED,
+    UNRESTRICTED: FLAT_REALTIME_EVENTS.USER_UNRESTRICTED,
+    ROLE_UPDATED: FLAT_REALTIME_EVENTS.ROLE_UPDATED,
+    SESSION_REVOKED: FLAT_REALTIME_EVENTS.SESSION_REVOKED,
+    APPEAL_SUBMITTED: "user:appeal-submitted",
+  },
+  ADMIN: {
+    USER_UPDATED: "admin:user-updated",
+    ACCESS_REQUEST: "admin:access-request",
+    SETTINGS_UPDATED: FLAT_REALTIME_EVENTS.SETTINGS_UPDATED,
+  },
+  SESSION: {
+    FORCE_LOGOUT: FLAT_REALTIME_EVENTS.FORCE_LOGOUT,
+    LEGACY_FORCE_LOGOUT: LEGACY_REALTIME_EVENTS.FORCE_LOGOUT,
+  },
+  CATEGORY: {
+    UPDATED: "category:updated",
+    LIST_REFRESH: "category:list-refresh",
+  },
+  THEME: {
+    UPDATED: "theme:updated",
+    LIST_REFRESH: "theme:list-refresh",
+  },
+  PLATFORM_THEME: {
+    UPDATED: FLAT_REALTIME_EVENTS.PLATFORM_THEME_UPDATED,
+  },
+  NOTIFICATION: {
+    NEW: FLAT_REALTIME_EVENTS.NOTIFICATION_NEW,
+  },
 };
 
 export const REALTIME_ROOMS = {
-    USER: (userId) => `user:${userId}`,
-    ADMIN: "admin",
-    SUPER_ADMIN: "super-admin",
+  ...SECURE_REALTIME_ROOMS,
+  USER: SECURE_REALTIME_ROOMS.USER,
+  ADMIN: SECURE_REALTIME_ROOMS.ADMIN_GLOBAL,
+  SUPER_ADMIN: SECURE_REALTIME_ROOMS.ADMIN_GLOBAL,
 };

@@ -38,6 +38,8 @@ export async function createNotification({
     title,
     message,
     metadata,
+    severity,
+    actionUrl,
 }) {
     try {
         await dbConnect();
@@ -47,6 +49,8 @@ export async function createNotification({
             title,
             message,
             metadata,
+            severity,
+            actionUrl,
         });
     } catch (error) {
         console.error("Error creating notification:", error);

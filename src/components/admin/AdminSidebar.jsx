@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +44,6 @@ import {
   ClipboardList,
   HardDrive,
   Settings,
-  Menu,
   X,
   ChevronDown,
   ArrowUpRight,
@@ -353,21 +352,19 @@ function SidebarContent({ onClose }) {
 export function AdminSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  useEffect(() => {
+    const openSidebar = () => setMobileOpen(true);
+    window.addEventListener("sitecraft:open-admin-sidebar", openSidebar);
+    return () =>
+      window.removeEventListener("sitecraft:open-admin-sidebar", openSidebar);
+  }, []);
+
   return (
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-72 shrink-0 border-r border-border bg-card/50 backdrop-blur-md h-screen sticky top-0 flex-col">
         <SidebarContent />
       </aside>
-
-      {/* Mobile Toggle */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed bottom-6 left-6 z-50 p-3 rounded-full bg-primary text-white shadow-xl shadow-primary/30"
-        aria-label="Open admin menu"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
 
       {/* Mobile Drawer */}
       <AnimatePresence>

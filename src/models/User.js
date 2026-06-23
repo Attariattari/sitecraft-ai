@@ -172,7 +172,20 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
     },
+    restrictedReason: {
+        type: String,
+    },
     restrictionReason: {
+        type: String,
+    },
+    suspendedAt: {
+        type: Date,
+    },
+    suspendedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+    },
+    suspendedReason: {
         type: String,
     },
     restrictionAppeal: {

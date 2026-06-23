@@ -1,4 +1,3 @@
-import { Geist, Geist_Mono, Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { AppLoaderProvider } from "@/components/providers/AppLoaderProvider";
 import { UserProvider } from "@/context/UserContext";
@@ -10,27 +9,10 @@ import { getPlatformThemeForGuest } from "@/lib/platformThemeResolver";
 import { PLATFORM_THEME_VARIABLES } from "@/lib/theme/applyPlatformTheme";
 import { HomeMouseSpotlight } from "@/components/home/HomeMouseSpotlight";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  display: "swap",
-});
+const geistSans = { variable: "font-geist-sans" };
+const geistMono = { variable: "font-geist-mono" };
+const inter = { variable: "font-inter" };
+const outfit = { variable: "font-outfit" };
 
 export const metadata = {
   title: "SiteCraft AI - Build Beautiful Websites with AI",

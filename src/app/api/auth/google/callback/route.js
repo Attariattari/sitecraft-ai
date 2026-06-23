@@ -82,8 +82,11 @@ export async function GET(req) {
 
         if (user) {
             // Already matched googleId -> Existing Google User
-            if (user.status === "restricted" || user.status === "suspended") {
+            if (user.status === "restricted") {
                 return NextResponse.redirect(`${baseUrl}/restricted`);
+            }
+            if (user.status === "suspended") {
+                return NextResponse.redirect(`${baseUrl}/suspended`);
             }
 
             // Mark last provider as google
@@ -96,8 +99,11 @@ export async function GET(req) {
 
             if (user) {
                 // Email exact match but googleId missing -> Case 2: Unlinked
-                if (user.status === "restricted" || user.status === "suspended") {
+                if (user.status === "restricted") {
                     return NextResponse.redirect(`${baseUrl}/restricted`);
+                }
+                if (user.status === "suspended") {
+                    return NextResponse.redirect(`${baseUrl}/suspended`);
                 }
 
                 // Generate pending link token

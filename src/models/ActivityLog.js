@@ -17,8 +17,12 @@ const ActivityLogSchema = new mongoose.Schema({
         required: true,
         enum: [
             "user_restricted",
+            "user_suspended",
             "user_unrestricted",
+            "user_sessions_revoked",
             "role_changed",
+            "platform_theme_updated",
+            "admin_settings_updated",
             "appeal_submitted",
             "appeal_approved",
             "appeal_rejected",
