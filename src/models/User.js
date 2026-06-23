@@ -30,6 +30,75 @@ const UserSchema = new mongoose.Schema({
         enum: ["free", "basic", "pro", "agency"],
         default: "free",
     },
+    subscription: {
+        status: {
+            type: String,
+            enum: ["free", "active", "trialing", "past_due", "cancelled", "expired"],
+            default: "free",
+        },
+        planSlug: {
+            type: String,
+            enum: ["free", "basic", "pro", "agency"],
+            default: "free",
+        },
+        provider: {
+            type: String,
+            default: "",
+            trim: true,
+        },
+        providerCustomerId: {
+            type: String,
+            default: "",
+            trim: true,
+        },
+        providerSubscriptionId: {
+            type: String,
+            default: "",
+            trim: true,
+        },
+        startedAt: {
+            type: Date,
+        },
+        expiresAt: {
+            type: Date,
+        },
+        renewedAt: {
+            type: Date,
+        },
+        currentPeriodStart: {
+            type: Date,
+        },
+        currentPeriodEnd: {
+            type: Date,
+        },
+    },
+    usage: {
+        websitesCreated: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        aiCreditsUsedThisMonth: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        themesUsed: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        storageUsedMB: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        customDomainsUsed: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+    },
     credits: {
         type: Number,
         default: 10,
@@ -228,6 +297,18 @@ UserSchema.pre("save", async function() {
         this.accountPurpose = this.primaryPurpose;
     }
 
+    if (!this.subscription) {
+        this.subscription = {};
+    }
+
+    if (!this.subscription.planSlug) {
+        this.subscription.planSlug = this.plan || "free";
+    }
+
+    if (!this.subscription.status) {
+        this.subscription.status = this.plan === "free" ? "free" : "active";
+    }
+
     // Sync manualProfile if missing
     if (
         this.authProviders ? .credentials &&
@@ -286,6 +367,14 @@ UserSchema.pre("save", async function() {
     // Super admins always get at least "pro" plan — never free or basic
     if (this.role === "super-admin" && ["free", "basic"].includes(this.plan)) {
         this.plan = "agency";
+    }
+
+    if (this.subscription && this.subscription.planSlug !== this.plan) {
+        this.subscription.planSlug = this.plan;
+    }
+
+    if (this.subscription && this.plan === "free") {
+        this.subscription.status = "free";
     }
 });
 

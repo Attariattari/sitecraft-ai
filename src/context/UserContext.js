@@ -10,17 +10,41 @@ import React, {
 
 const UserContext = createContext();
 
+function canUseApiFetch() {
+  if (typeof window === "undefined") return true;
+  return window.location.protocol === "http:" || window.location.protocol === "https:";
+}
+
+function isTransientFetchError(error) {
+  return error instanceof TypeError && error.message.toLowerCase().includes("fetch");
+}
+
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userTheme, setUserTheme] = useState("");
 
+  const loadUserTheme = useCallback(async () => {
+    if (!canUseApiFetch()) return;
+
+    try {
+      const res = await fetch("/api/user/theme-preference");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.themeId) {
+          setUserTheme(data.themeId);
+        }
+      }
+    } catch (error) {
+      if (!isTransientFetchError(error)) {
+        console.error("Failed to load user theme:", error);
+      }
+    }
+  }, []);
+
   const refreshUser = useCallback(async () => {
     try {
-      // If the app is opened directly from the filesystem (file://),
-      // skip calling the API to avoid network errors in that environment.
-      if (typeof window !== "undefined" && window.location.protocol === "file:") {
-        console.warn("User refresh skipped: running from file:// protocol");
+      if (!canUseApiFetch()) {
         setUser(null);
         setLoading(false);
         return;
@@ -47,28 +71,18 @@ export function UserProvider({ children }) {
         setUser(null);
       }
     } catch (error) {
-      console.error("refreshUser error:", error);
+      if (!isTransientFetchError(error)) {
+        console.error("refreshUser error:", error);
+      }
       setUser(null);
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const loadUserTheme = useCallback(async () => {
-    try {
-      const res = await fetch("/api/user/theme-preference");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.themeId) {
-          setUserTheme(data.themeId);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load user theme:", error);
-    }
-  }, []);
+  }, [loadUserTheme]);
 
   const updateUserTheme = useCallback(async (themeId) => {
+    if (!canUseApiFetch()) return;
+
     try {
       const res = await fetch("/api/user/theme-preference", {
         method: "PATCH",
@@ -86,7 +100,9 @@ export function UserProvider({ children }) {
         }
       }
     } catch (error) {
-      console.error("Failed to update user theme:", error);
+      if (!isTransientFetchError(error)) {
+        console.error("Failed to update user theme:", error);
+      }
     }
   }, []);
 

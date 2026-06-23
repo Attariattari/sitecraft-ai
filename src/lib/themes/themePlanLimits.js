@@ -3,18 +3,14 @@
  * Determines how many themes a user can access based on their plan
  */
 
-const PLAN_THEME_LIMITS = {
-  free: 1,
-  basic: 4,
-  pro: 10,
-  agency: Infinity,
-};
+import { getPlanLimits, getUserPlanSlug } from "@/lib/plans/planEntitlements";
 
 /**
  * Get the number of themes allowed for a user's plan
  */
 export function getThemeLimitByPlan(plan) {
-  return PLAN_THEME_LIMITS[plan] || 1;
+  const limit = getPlanLimits(plan).themes;
+  return limit === -1 ? Infinity : limit || 1;
 }
 
 /**
@@ -34,8 +30,8 @@ export function applyThemePlanLimit(themes, plan) {
  * Get the allowed theme count for a user
  */
 export function getAllowedThemeCount(user) {
-  if (!user || !user.plan) return 1;
-  return getThemeLimitByPlan(user.plan);
+  if (!user) return 1;
+  return getThemeLimitByPlan(getUserPlanSlug(user));
 }
 
 /**
@@ -45,7 +41,7 @@ export function getAllowedThemeCount(user) {
 export function canUserAccessTheme(user, themeId, recommendedThemeIds = []) {
   if (!user) return false;
   
-  const plan = user.plan || "free";
+  const plan = getUserPlanSlug(user);
   const limit = getThemeLimitByPlan(plan);
   
   if (limit === Infinity) return true;

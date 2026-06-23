@@ -91,8 +91,6 @@ const themeSchema = new mongoose.Schema(
   },
 );
 
-themeSchema.index({ themeId: 1 });
-themeSchema.index({ slug: 1 });
 themeSchema.index({ isActive: 1, isAvailable: 1, isLocked: 1 });
 
 const Theme = mongoose.models.Theme || mongoose.model("Theme", themeSchema);

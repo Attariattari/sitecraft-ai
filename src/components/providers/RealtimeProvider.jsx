@@ -20,6 +20,10 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const RealtimeContext = createContext();
 
+function isTransientFetchError(error) {
+  return error instanceof TypeError && error.message.toLowerCase().includes("fetch");
+}
+
 export function RealtimeProvider({ children }) {
   const { user, refreshUser, setUser } = useUser();
   const router = useRouter();
@@ -45,7 +49,9 @@ export function RealtimeProvider({ children }) {
         setUnreadCount(data.unreadCount);
       }
     } catch (err) {
-      console.error("Failed to fetch notifications:", err);
+      if (!isTransientFetchError(err)) {
+        console.error("Failed to fetch notifications:", err);
+      }
     }
   }, [user]);
 
@@ -292,7 +298,9 @@ export function RealtimeProvider({ children }) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       }
     } catch (err) {
-      console.error("Failed to mark all read:", err);
+      if (!isTransientFetchError(err)) {
+        console.error("Failed to mark all read:", err);
+      }
     }
   };
 

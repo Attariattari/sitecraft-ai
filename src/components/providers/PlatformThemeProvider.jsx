@@ -30,6 +30,15 @@ function getStoredMode() {
   }
 }
 
+function canUseApiFetch() {
+  if (typeof window === "undefined") return true;
+  return window.location.protocol === "http:" || window.location.protocol === "https:";
+}
+
+function isTransientFetchError(error) {
+  return error instanceof TypeError && error.message.toLowerCase().includes("fetch");
+}
+
 export function usePlatformThemeContext() {
   return useContext(PlatformThemeContext);
 }
@@ -39,6 +48,8 @@ export function usePlatformThemeContext() {
  */
 export function PlatformThemeProvider({ children, initialTheme = null }) {
   const themeSignatureRef = useRef("");
+  const fetchInFlightRef = useRef(false);
+  const transientFetchFailuresRef = useRef(0);
   const [theme, setTheme] = useState(initialTheme);
   const [source, setSource] = useState("fallback");
   const [mode, setMode] = useState(normalizeMode(initialTheme?.defaultMode));
@@ -47,6 +58,14 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
 
   const fetchAndApplyTheme = useCallback(
     async ({ showToast = false } = {}) => {
+      if (!canUseApiFetch()) {
+        setMounted(true);
+        return;
+      }
+
+      if (fetchInFlightRef.current) return;
+      fetchInFlightRef.current = true;
+
       try {
         removeLegacyThemeChoice();
         const res = await fetch("/api/platform-theme", { cache: "no-store" });
@@ -76,11 +95,20 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
         setSource(data.source || "fallback");
         setMode(nextMode);
         setResolvedMode(nextResolvedMode);
+        transientFetchFailuresRef.current = 0;
 
         if (showToast && changed) toast.success("Platform theme updated.");
       } catch (error) {
-        console.error("Failed to fetch platform theme:", error);
+        if (isTransientFetchError(error)) {
+          if (transientFetchFailuresRef.current === 0) {
+            console.warn("Platform theme refresh skipped while the API is unavailable.");
+          }
+          transientFetchFailuresRef.current += 1;
+        } else {
+          console.error("Failed to fetch platform theme:", error);
+        }
       } finally {
+        fetchInFlightRef.current = false;
         setMounted(true);
       }
     },
@@ -141,7 +169,9 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
             body: JSON.stringify({ mode: nextMode }),
           });
         } catch (error) {
-          console.error("Failed to save theme mode:", error);
+          if (!isTransientFetchError(error)) {
+            console.error("Failed to save theme mode:", error);
+          }
         }
       }
     },

@@ -3,6 +3,15 @@
  * Handles polling fallback for serverless environments.
  * Can be easily swapped for Socket.IO-client.
  */
+function canUseApiFetch() {
+    if (typeof window === "undefined") return true;
+    return window.location.protocol === "http:" || window.location.protocol === "https:";
+}
+
+function isTransientFetchError(error) {
+    return error instanceof TypeError && error.message.toLowerCase().includes("fetch");
+}
+
 export class RealtimeClient {
     constructor() {
         this.listeners = new Map();
@@ -10,6 +19,8 @@ export class RealtimeClient {
         this.lastCheckedHeader = null;
         this._hadSuccessfulFetch = false;
         this._focusHandler = null;
+        this._loggedPollingFetchFailure = false;
+        this._loggedAuthFetchFailure = false;
     }
 
     on(event, callback) {
@@ -34,6 +45,8 @@ export class RealtimeClient {
     }
 
     async checkAuthState() {
+        if (!canUseApiFetch()) return;
+
         try {
             const res = await fetch("/api/auth/me", { cache: "no-store" });
             if (!res.ok) return;
@@ -69,15 +82,26 @@ export class RealtimeClient {
                     redirectTo: "/login",
                 });
             }
+            this._loggedAuthFetchFailure = false;
         } catch (err) {
-            console.error("Auth realtime check error:", err);
+            if (isTransientFetchError(err)) {
+                if (!this._loggedAuthFetchFailure) {
+                    console.warn("Auth realtime check skipped while the API is unavailable.");
+                    this._loggedAuthFetchFailure = true;
+                }
+            } else {
+                console.error("Auth realtime check error:", err);
+            }
         }
     }
 
     startPolling(interval = 3000) {
+        if (!canUseApiFetch()) return;
         if (this.intervalId) return;
 
         this.intervalId = setInterval(async() => {
+            if (!canUseApiFetch()) return;
+
             try {
                 const res = await fetch("/api/notifications?limit=5");
                 const data = await res.json();
@@ -100,6 +124,7 @@ export class RealtimeClient {
                 // Mark that we've successfully fetched notifications at least once.
                 if (res.ok) {
                     this._hadSuccessfulFetch = true;
+                    this._loggedPollingFetchFailure = false;
                 }
 
                 // Check auth status/session version via a separate check if needed.
@@ -118,7 +143,14 @@ export class RealtimeClient {
                     }
                 }
             } catch (err) {
-                console.error("Polling error:", err);
+                if (isTransientFetchError(err)) {
+                    if (!this._loggedPollingFetchFailure) {
+                        console.warn("Realtime polling skipped while the API is unavailable.");
+                        this._loggedPollingFetchFailure = true;
+                    }
+                } else {
+                    console.error("Polling error:", err);
+                }
             }
 
             await this.checkAuthState();

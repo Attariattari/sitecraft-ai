@@ -105,7 +105,7 @@ export default async function RootLayout({ children }) {
         <UserProvider>
           <PlatformThemeProvider initialTheme={initialPlatformTheme}>
             <RealtimeProvider>
-              <div className="site-scroll">
+              <div className="flex min-h-svh flex-col">
                 <HomeMouseSpotlight />
                 <AppLoaderProvider>{children}</AppLoaderProvider>
                 <ScrollProgress />

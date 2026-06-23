@@ -44,6 +44,8 @@ export async function getCurrentUser() {
             name: user.name,
             role: user.role,
             plan: user.plan,
+            subscription: user.subscription,
+            usage: user.usage,
             credits: user.credits,
             accountPurpose: user.accountPurpose,
             authProvider: user.authProvider || "credentials",

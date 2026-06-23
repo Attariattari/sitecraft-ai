@@ -86,7 +86,7 @@ const socials = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/50 bg-background pt-16 pb-8">
+    <footer className="shrink-0 border-t border-border/50 bg-background pt-16 pb-8">
       <div className="container mx-auto px-6">
         <div className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-2xl shadow-primary/5">
           <div className="grid lg:grid-cols-[1.12fr_1.88fr]">

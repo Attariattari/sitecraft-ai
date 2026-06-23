@@ -1,6 +1,27 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Site from "@/models/Site";
+import User from "@/models/User";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { getAvailableThemes } from "@/lib/themes/themeService";
+import { applyThemePlanLimit } from "@/lib/themes/themePlanLimits";
+import {
+  getUserPlanSlug,
+  requireFeature,
+  requireLimit,
+} from "@/lib/plans/planEntitlements";
+
+function planBlockResponse(result, status = 403) {
+  return NextResponse.json(
+    {
+      success: false,
+      code: result.code,
+      message: result.message,
+      upgradeTo: result.upgradeTo,
+    },
+    { status },
+  );
+}
 
 /**
  * GET /api/sites
@@ -54,8 +75,44 @@ export async function POST(request) {
     await dbConnect();
 
     const { category = "portfolio", templateId, themeId = "emerald" } = body;
+    const currentUser = await getCurrentUser();
+    const entitlementUser = currentUser || { plan: "free" };
+
+    const templateAccess = requireFeature(entitlementUser, "templateAccess");
+    if (!templateAccess.allowed) {
+      return planBlockResponse(templateAccess);
+    }
+
+    const websitesCreated = currentUser
+      ? await Site.countDocuments({ ownerId: currentUser.id })
+      : 0;
+    const websiteLimit = requireLimit(entitlementUser, "websites", websitesCreated);
+    if (!websiteLimit.allowed) {
+      return planBlockResponse(websiteLimit, 429);
+    }
+
+    const planThemes = applyThemePlanLimit(
+      await getAvailableThemes("dashboard"),
+      getUserPlanSlug(entitlementUser),
+    );
+    const themeAllowedByPlan = planThemes.some((theme) => {
+      return theme.themeId === themeId || theme.slug === themeId;
+    });
+
+    if (!themeAllowedByPlan) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: "PLAN_LIMIT_REACHED",
+          message: "Upgrade to access more themes.",
+          upgradeTo: "basic",
+        },
+        { status: 403 },
+      );
+    }
 
     const site = new Site({
+      ownerId: currentUser?.id || null,
       category,
       templateId,
       themeId,
@@ -66,6 +123,12 @@ export async function POST(request) {
     });
 
     await site.save();
+
+    if (currentUser) {
+      await User.findByIdAndUpdate(currentUser.id, {
+        $inc: { "usage.websitesCreated": 1 },
+      });
+    }
 
     return NextResponse.json(
       {

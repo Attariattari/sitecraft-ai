@@ -29,6 +29,17 @@ export function safeUserPayload(user, loginProvider = "credentials") {
         name: user.name,
         role: user.role,
         plan: user.plan || "free",
+        subscription: user.subscription || {
+            status: "free",
+            planSlug: user.plan || "free",
+        },
+        usage: user.usage || {
+            websitesCreated: 0,
+            aiCreditsUsedThisMonth: 0,
+            themesUsed: 0,
+            storageUsedMB: 0,
+            customDomainsUsed: 0,
+        },
         credits: user.credits || 0,
         accountPurpose: user.accountPurpose,
         primaryPurpose: user.primaryPurpose,

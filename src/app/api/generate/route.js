@@ -2,11 +2,30 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Site from "@/models/Site";
 import AIUsageLog from "@/models/AIUsageLog";
+import User from "@/models/User";
 import { generateInputSchema, generateSafeSlug } from "@/lib/validations/siteValidation";
 import { generatePortfolioWebsite } from "@/lib/ai/siteGenerator";
-import { nanoid } from "nanoid";
 import { isCategorySelectable } from "@/lib/categories/categoryService";
-import { isThemeSelectable } from "@/lib/themes/themeService";
+import { getAvailableThemes, isThemeSelectable } from "@/lib/themes/themeService";
+import { applyThemePlanLimit } from "@/lib/themes/themePlanLimits";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import {
+  requireFeature,
+  requireLimit,
+  getUserPlanSlug,
+} from "@/lib/plans/planEntitlements";
+
+function planBlockResponse(result, status = 403) {
+  return NextResponse.json(
+    {
+      success: false,
+      code: result.code,
+      message: result.message,
+      upgradeTo: result.upgradeTo,
+    },
+    { status },
+  );
+}
 
 export async function POST(request) {
   try {
@@ -18,6 +37,28 @@ export async function POST(request) {
     // Connect to database
     await dbConnect();
 
+    const currentUser = await getCurrentUser();
+    const entitlementUser = currentUser || { plan: "free" };
+
+    const generationAccess = requireFeature(entitlementUser, "aiWebsiteGeneration");
+    if (!generationAccess.allowed) {
+      return planBlockResponse(generationAccess);
+    }
+
+    const websitesCreated = currentUser
+      ? await Site.countDocuments({ ownerId: currentUser.id })
+      : 0;
+    const websiteLimit = requireLimit(entitlementUser, "websites", websitesCreated);
+    if (!websiteLimit.allowed) {
+      return planBlockResponse(websiteLimit, 429);
+    }
+
+    const aiCreditsUsed = currentUser?.usage?.aiCreditsUsedThisMonth || 0;
+    const aiCreditLimit = requireLimit(entitlementUser, "aiCreditsPerMonth", aiCreditsUsed);
+    if (!aiCreditLimit.allowed) {
+      return planBlockResponse(aiCreditLimit, 429);
+    }
+
     // Validate category and theme availability server-side
     const categoryOk = await isCategorySelectable(validatedData.category);
     if (!categoryOk) {
@@ -28,6 +69,26 @@ export async function POST(request) {
       const themeOk = await isThemeSelectable(validatedData.themeKey);
       if (!themeOk) {
         return NextResponse.json({ success: false, error: "This theme is currently unavailable." }, { status: 400 });
+      }
+
+      const planThemes = applyThemePlanLimit(
+        await getAvailableThemes("generate"),
+        getUserPlanSlug(entitlementUser),
+      );
+      const themeAllowedByPlan = planThemes.some((theme) => {
+        return theme.themeId === validatedData.themeKey || theme.slug === validatedData.themeKey;
+      });
+
+      if (!themeAllowedByPlan) {
+        return NextResponse.json(
+          {
+            success: false,
+            code: "PLAN_LIMIT_REACHED",
+            message: "Upgrade to access more themes.",
+            upgradeTo: "basic",
+          },
+          { status: 403 },
+        );
       }
     }
 
@@ -54,7 +115,7 @@ export async function POST(request) {
 
     // Create Site document
     const site = new Site({
-      ownerId: null, // Temporary - will be set when auth is implemented
+      ownerId: currentUser?.id || null,
       category: validatedData.category,
       templateId: null, // Will be set from AI recommendation
       themeId: validatedData.themeKey,
@@ -94,6 +155,15 @@ export async function POST(request) {
     });
 
     await usageLog.save();
+
+    if (currentUser) {
+      await User.findByIdAndUpdate(currentUser.id, {
+        $inc: {
+          "usage.websitesCreated": 1,
+          "usage.aiCreditsUsedThisMonth": 1,
+        },
+      });
+    }
 
     return NextResponse.json(
       {
