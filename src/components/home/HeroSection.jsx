@@ -227,8 +227,8 @@ export function HeroSection() {
               {/* Browser chrome */}
               <div className="flex items-center gap-3 px-6 py-4 bg-secondary/30 border-b border-border/40">
                 <div className="flex gap-1.5">
-                  <div className="size-3 rounded-full bg-red-400/60" />
-                  <div className="size-3 rounded-full bg-amber-400/60" />
+                  <div className="size-3 rounded-full bg-accent/60" />
+                  <div className="size-3 rounded-full bg-primary-soft" />
                   <div className="size-3 rounded-full bg-primary/60" />
                 </div>
                 <div className="flex-1 bg-background border border-border/50 rounded-full px-4 py-1.5 text-[10px] sm:text-xs text-muted-foreground font-mono max-w-sm mx-auto text-center flex justify-center items-center gap-2">

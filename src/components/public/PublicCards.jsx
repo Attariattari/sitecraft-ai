@@ -71,6 +71,8 @@ export function PublicCTA({
   description = "Turn your idea into a polished, theme-ready website with SiteCraft AI.",
   href = "/generate",
   label = "Start Building",
+  secondaryHref,
+  secondaryLabel,
 }) {
   return (
     <section className="bg-background py-16">
@@ -84,13 +86,23 @@ export function PublicCTA({
             <p className="mx-auto mt-4 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground md:text-base">
               {description}
             </p>
-            <Link
-              href={href}
-              className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-6 text-sm font-black text-primary-foreground shadow-xl shadow-primary/20 transition hover:opacity-90"
-            >
-              {label}
-              <ArrowRight className="size-4" />
-            </Link>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href={href}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-6 text-sm font-black text-primary-foreground shadow-xl shadow-primary/20 transition hover:opacity-90"
+              >
+                {label}
+                <ArrowRight className="size-4" />
+              </Link>
+              {secondaryHref && secondaryLabel ? (
+                <Link
+                  href={secondaryHref}
+                  className="inline-flex h-12 items-center justify-center rounded-2xl border border-border bg-background/70 px-6 text-sm font-black text-foreground transition hover:bg-secondary"
+                >
+                  {secondaryLabel}
+                </Link>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

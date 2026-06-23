@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getPurposeLimitByPlan } from "@/lib/purposeLimits";
 import {
   User,
@@ -14,12 +14,13 @@ import {
   Megaphone,
   GraduationCap,
   Layout,
-  Loader2,
   CheckCircle2,
   AlertCircle,
   Sparkles,
   ChevronRight,
+  Lock,
 } from "lucide-react";
+import { SiteCraftLoader } from "@/components/common/SiteCraftLoader";
 
 const iconMap = {
   User,
@@ -44,7 +45,6 @@ function AccountPurposeContent() {
   const [primaryPurpose, setPrimaryPurpose] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     async function fetchCategories() {
@@ -155,12 +155,10 @@ function AccountPurposeContent() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0a]">
-        <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-        <p className="mt-4 text-emerald-100 font-medium">
-          Loading your profile...
-        </p>
-      </div>
+      <SiteCraftLoader
+        variant="fullscreen"
+        text="Loading your profile and website purpose options..."
+      />
     );
   }
 
@@ -347,7 +345,7 @@ function AccountPurposeContent() {
             >
               {saving ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <SiteCraftLoader variant="button" text="Saving configuration" />
                   Saving Configuration...
                 </>
               ) : (
@@ -376,9 +374,10 @@ export default function AccountPurposePage() {
   return (
     <React.Suspense
       fallback={
-        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-          <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-        </div>
+        <SiteCraftLoader
+          variant="fullscreen"
+          text="Loading your profile and website purpose options..."
+        />
       }
     >
       <AccountPurposeContent />

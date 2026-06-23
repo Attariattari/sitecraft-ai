@@ -8,13 +8,6 @@ export function AppLoaderProvider({ children }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Check if it's the first load
-    const hasLoaded = sessionStorage.getItem("sitecraft_app_loaded");
-    if (hasLoaded) {
-      setIsReady(true);
-      return;
-    }
-
     // Delay showing children until the app is fully hydrated and loader is near completion
     const timer = setTimeout(() => {
       setIsReady(true);

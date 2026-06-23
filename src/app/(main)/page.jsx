@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/home/Navbar";
 import { HeroSection } from "@/components/home/HeroSection";
 import { TrustStatsSection } from "@/components/home/TrustStatsSection";
 import { ProblemSolutionSection } from "@/components/home/ProblemSolutionSection";
@@ -10,14 +9,10 @@ import { ThemeShowcaseSection } from "@/components/home/ThemeShowcaseSection";
 import { PricingPreviewSection } from "@/components/home/PricingPreviewSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { FinalCTASection } from "@/components/home/FinalCTASection";
-import { Footer } from "@/components/home/Footer";
-import { HomeMouseSpotlight } from "@/components/home/HomeMouseSpotlight";
 
 export default function Home() {
   return (
     <div className="relative flex flex-col min-h-screen bg-background font-sans selection:bg-primary/20">
-      <HomeMouseSpotlight />
-      <Navbar />
       <main className="relative flex-1">
         <HeroSection />
         <TrustStatsSection />
@@ -31,7 +26,6 @@ export default function Home() {
         <FAQSection />
         <FinalCTASection />
       </main>
-      <Footer />
     </div>
   );
 }

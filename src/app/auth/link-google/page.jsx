@@ -4,12 +4,12 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  Loader2,
   Link2,
   CheckCircle2,
   XCircle,
   AlertCircle,
 } from "lucide-react";
+import { SiteCraftLoader } from "@/components/common/SiteCraftLoader";
 
 function LinkGoogleContent() {
   const router = useRouter();
@@ -22,32 +22,43 @@ function LinkGoogleContent() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    if (!token) {
-      setError("Linking token is missing.");
-      setLoading(false);
-      return;
-    }
+    let cancelled = false;
 
-    try {
-      // Decode JWT payload (base64) to show data
-      // JWT is "header.payload.signature"
-      const payloadBase64 = token.split(".")[1];
-      const decoded = JSON.parse(atob(payloadBase64));
+    const id = window.setTimeout(() => {
+      if (cancelled) return;
 
-      if (decoded.expiresAt < Date.now()) {
-        setError(
-          "This linking request has expired. Please try logging in with Google again.",
-        );
+      if (!token) {
+        setError("Linking token is missing.");
         setLoading(false);
         return;
       }
 
-      setData(decoded);
-      setLoading(false);
-    } catch (err) {
-      setError("Invalid linking token.");
-      setLoading(false);
-    }
+      try {
+        // Decode JWT payload (base64) to show data
+        // JWT is "header.payload.signature"
+        const payloadBase64 = token.split(".")[1];
+        const decoded = JSON.parse(atob(payloadBase64));
+
+        if (decoded.expiresAt < Date.now()) {
+          setError(
+            "This linking request has expired. Please try logging in with Google again.",
+          );
+          setLoading(false);
+          return;
+        }
+
+        setData(decoded);
+        setLoading(false);
+      } catch (err) {
+        setError("Invalid linking token.");
+        setLoading(false);
+      }
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(id);
+    };
   }, [token]);
 
   const handleLink = async () => {
@@ -81,9 +92,10 @@ function LinkGoogleContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
-      </div>
+      <SiteCraftLoader
+        variant="fullscreen"
+        text="Preparing secure account linking..."
+      />
     );
   }
 
@@ -229,7 +241,7 @@ function LinkGoogleContent() {
           >
             {linking ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <SiteCraftLoader variant="button" text="Linking accounts" />
                 Linking accounts...
               </>
             ) : (
@@ -261,9 +273,10 @@ export default function LinkGooglePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
+        <SiteCraftLoader
+          variant="fullscreen"
+          text="Preparing secure account linking..."
+        />
       }
     >
       <LinkGoogleContent />

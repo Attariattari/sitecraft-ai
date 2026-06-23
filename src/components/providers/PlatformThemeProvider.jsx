@@ -2,21 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useUser } from "@/context/UserContext";
 import { applyPlatformTheme } from "@/lib/theme/applyPlatformTheme";
 
 const MODE_STORAGE_KEY = "sitecraft_platform_theme_mode";
 const LEGACY_THEME_STORAGE_KEY = "sitecraft_platform_theme";
 const PlatformThemeContext = createContext(null);
-
-function getStoredMode() {
-  try {
-    const mode = localStorage.getItem(MODE_STORAGE_KEY);
-    return ["light", "dark"].includes(mode) ? mode : null;
-  } catch {
-    return null;
-  }
-}
 
 function normalizeMode(mode) {
   return mode === "dark" ? "dark" : "light";
@@ -38,7 +28,6 @@ export function usePlatformThemeContext() {
  * Loads the Super Admin platform theme and lets users override only light/dark mode.
  */
 export function PlatformThemeProvider({ children, initialTheme = null }) {
-  const { user } = useUser();
   const [theme, setTheme] = useState(initialTheme);
   const [source, setSource] = useState("fallback");
   const [mode, setMode] = useState(normalizeMode(initialTheme?.defaultMode));
@@ -49,27 +38,15 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
   );
   const [mounted, setMounted] = useState(Boolean(initialTheme));
 
-  const getPreferredMode = useCallback(
-    (platformTheme) => {
-      if (!platformTheme?.allowUserOverride) {
-        return normalizeMode(platformTheme?.defaultMode);
-      }
-
-      const storedMode = getStoredMode();
-      const userMode = user?.preferences?.platformTheme?.mode;
-
-      if (["light", "dark"].includes(userMode)) return userMode;
-      if (["light", "dark"].includes(storedMode)) return storedMode;
-
-      return normalizeMode(platformTheme?.defaultMode);
-    },
-    [user]
-  );
-
   const fetchAndApplyTheme = useCallback(
     async ({ showToast = false } = {}) => {
       try {
         removeLegacyThemeChoice();
+        try {
+          localStorage.removeItem(MODE_STORAGE_KEY);
+        } catch {
+          // Storage can be unavailable in private browsing.
+        }
 
         const res = await fetch("/api/platform-theme", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load platform theme");
@@ -78,7 +55,7 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
         const nextTheme = data.theme;
         if (!nextTheme) return;
 
-        const nextMode = getPreferredMode(nextTheme);
+        const nextMode = normalizeMode(nextTheme.defaultMode);
         const nextResolvedMode = applyPlatformTheme(nextTheme, nextMode);
 
         setTheme(nextTheme);
@@ -93,7 +70,7 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
         setMounted(true);
       }
     },
-    [getPreferredMode]
+    []
   );
 
   useEffect(() => {

@@ -10,6 +10,27 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const MODE_STORAGE_KEY = "sitecraft_platform_theme_mode";
+
+function clearLocalModeOverride() {
+  try {
+    localStorage.removeItem(MODE_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable in private browsing.
+  }
+}
+
+function notifyPlatformThemeUpdated() {
+  try {
+    if (!("BroadcastChannel" in window)) return;
+    const bc = new BroadcastChannel("sitecraft-platform-theme");
+    bc.postMessage({ type: "platform-theme:updated" });
+    bc.close();
+  } catch {
+    // BroadcastChannel can be unavailable in older/private browser contexts.
+  }
+}
+
 /**
  * Professional Theme Selection Page
  * Displays all themes as cards in a grid, with modal preview on click
@@ -101,7 +122,10 @@ export default function PlatformThemePage() {
       if (data.success) {
         setSetting(data.setting);
         setSelectedThemeId(data.setting.activeThemeId || data.setting.lightThemeId);
-        localStorage.setItem("sitecraft_platform_theme_mode", data.setting.defaultMode || defaultMode);
+        setDefaultMode(data.setting.defaultMode === "dark" ? "dark" : "light");
+        setAllowUserOverride(data.setting.allowUserOverride);
+        clearLocalModeOverride();
+        notifyPlatformThemeUpdated();
         toast.success("Platform theme updated successfully");
       } else {
         toast.error(data.message || "Failed to save platform theme");
@@ -147,7 +171,8 @@ export default function PlatformThemePage() {
         setSelectedThemeId(data.setting.activeThemeId || data.setting.lightThemeId);
         setDefaultMode(data.setting.defaultMode);
         setAllowUserOverride(data.setting.allowUserOverride);
-        localStorage.setItem("sitecraft_platform_theme_mode", data.setting.defaultMode || "light");
+        clearLocalModeOverride();
+        notifyPlatformThemeUpdated();
         toast.success("Reset to fallback platform theme");
       } else {
         toast.error(data.message || "Failed to reset");

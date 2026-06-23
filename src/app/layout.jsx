@@ -8,6 +8,7 @@ import ScrollProgress from "@/components/shared/ScrollProgress";
 import { Toaster } from "sonner";
 import { getPlatformThemeForGuest } from "@/lib/platformThemeResolver";
 import { PLATFORM_THEME_VARIABLES } from "@/lib/theme/applyPlatformTheme";
+import { HomeMouseSpotlight } from "@/components/home/HomeMouseSpotlight";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -70,12 +71,8 @@ function getThemeBootScript(theme) {
     (function () {
       try {
         var theme = ${safeTheme};
-        var allowedModes = { light: true, dark: true };
         var mode = theme.defaultMode === "dark" ? "dark" : "light";
-        if (theme.allowUserOverride !== false) {
-          var storedMode = localStorage.getItem("sitecraft_platform_theme_mode");
-          if (allowedModes[storedMode]) mode = storedMode;
-        }
+        localStorage.removeItem("sitecraft_platform_theme_mode");
         localStorage.removeItem("sitecraft_platform_theme");
         var resolvedMode = mode === "dark" ? "dark" : "light";
         var tokens = resolvedMode === "dark" ? theme.darkTokens : theme.lightTokens;
@@ -127,6 +124,7 @@ export default async function RootLayout({ children }) {
           <PlatformThemeProvider initialTheme={initialPlatformTheme}>
             <RealtimeProvider>
               <div className="site-scroll">
+                <HomeMouseSpotlight />
                 <AppLoaderProvider>{children}</AppLoaderProvider>
                 <ScrollProgress />
               </div>

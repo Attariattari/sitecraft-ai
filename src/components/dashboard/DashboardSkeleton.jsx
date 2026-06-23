@@ -1,11 +1,8 @@
 import { cn } from "@/lib/utils";
+import { SiteCraftSkeleton } from "@/components/common/SiteCraftSkeleton";
 
 export function DashboardSkeleton({ className }) {
-  return (
-    <div
-      className={cn("shimmer h-4 rounded-md bg-muted animate-pulse", className)}
-    />
-  );
+  return <SiteCraftSkeleton className={cn("h-4 rounded-md", className)} />;
 }
 
 export function DashboardCardSkeleton() {
