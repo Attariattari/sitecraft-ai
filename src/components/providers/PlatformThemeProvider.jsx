@@ -42,12 +42,8 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
   const [theme, setTheme] = useState(initialTheme);
   const [source, setSource] = useState("fallback");
   const [mode, setMode] = useState(normalizeMode(initialTheme?.defaultMode));
-  const [resolvedMode, setResolvedMode] = useState(() =>
-    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-      ? "dark"
-      : "light"
-  );
-  const [mounted, setMounted] = useState(Boolean(initialTheme));
+  const [resolvedMode, setResolvedMode] = useState(normalizeMode(initialTheme?.defaultMode));
+  const [mounted, setMounted] = useState(false);
 
   const fetchAndApplyTheme = useCallback(
     async ({ showToast = false } = {}) => {
@@ -81,7 +77,7 @@ export function PlatformThemeProvider({ children, initialTheme = null }) {
         setMode(nextMode);
         setResolvedMode(nextResolvedMode);
 
-        if (showToast || changed) toast.success("Platform theme updated.");
+        if (showToast && changed) toast.success("Platform theme updated.");
       } catch (error) {
         console.error("Failed to fetch platform theme:", error);
       } finally {
