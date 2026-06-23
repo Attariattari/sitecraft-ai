@@ -24,9 +24,9 @@ const LOCAL_FALLBACK = Object.values(WEBSITE_THEMES)
 /* ── Mini website mockup preview ── */
 function ThemeCard({ theme, index }) {
   const [primary, secondary, accent] = theme.colors || [
-    "#10B981",
-    "#064E3B",
-    "#F0FDF4",
+    "var(--primary)",
+    "var(--accent)",
+    "var(--background)",
   ];
 
   return (
@@ -97,7 +97,7 @@ function ThemeCard({ theme, index }) {
           <h3 className="text-base font-bold text-foreground leading-tight">
             {theme.name}
           </h3>
-          <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md shrink-0">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-primary bg-primary-soft px-2 py-1 rounded-md shrink-0">
             <CheckCircle2 className="w-3 h-3" />
             Available
           </div>
@@ -196,7 +196,7 @@ export function ThemeShowcaseSection() {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight mb-4">
-            Premium <span className="text-emerald-500">Theme</span> presets
+            Premium <span className="text-primary">Theme</span> presets
           </h2>
           <p className="text-lg text-muted-foreground font-medium">
             Start with {themes.length > 0 ? themes.length : "20"} professionally

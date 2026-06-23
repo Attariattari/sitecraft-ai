@@ -52,21 +52,28 @@ import { motion } from "framer-motion";
 
 const footerLinks = {
   Product: [
-    { label: "Features", href: "#features" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "Changelog", href: "#" },
+    { label: "Features", href: "/features" },
+    { label: "Templates", href: "/templates" },
+    { label: "Themes", href: "/themes" },
+    { label: "Pricing", href: "/pricing" },
   ],
   Company: [
     { label: "About", href: "/about" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
     { label: "Contact", href: "/contact" },
+    { label: "Blog", href: "/blog" },
+    { label: "How It Works", href: "/how-it-works" },
+  ],
+  Resources: [
+    { label: "FAQ", href: "/faq" },
+    { label: "Security", href: "/security" },
+    { label: "Status", href: "/status" },
+    { label: "Industries", href: "/industries" },
   ],
   Legal: [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cookie Policy", href: "#" },
+    { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Terms", href: "/terms" },
+    { label: "Cookie Policy", href: "/cookie-policy" },
+    { label: "Refund Policy", href: "/refund-policy" },
   ],
 };
 

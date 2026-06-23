@@ -1,68 +1,97 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { ThemeSelectionCard } from "@/components/admin/ThemeSelectionCard";
+import { ThemeSelectionModal } from "@/components/admin/ThemeSelectionModal";
 import { toast } from "sonner";
-import { Palette, Save, RotateCcw } from "lucide-react";
+import { 
+  Palette, Save, RotateCcw, AlertCircle, Clock
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const PLATFORM_THEME_OPTIONS = [
-  { id: "white-green-orange", name: "White + Green + Orange", description: "Fresh and vibrant" },
-  { id: "white-gray", name: "White + Gray", description: "Clean and minimal" },
-  { id: "soft-saas", name: "Soft SaaS", description: "Soft and friendly" },
-  { id: "dark-slate", name: "Dark Slate", description: "Dark professional" },
-  { id: "emerald-dark", name: "Emerald Dark", description: "Dark with emerald accent" },
-  { id: "minimal-white", name: "Minimal White", description: "Minimal white theme" },
-];
+/**
+ * Professional Theme Selection Page
+ * Displays all themes as cards in a grid, with modal preview on click
+ */
 
 export default function PlatformThemePage() {
   const [setting, setSetting] = useState(null);
+  const [themes, setThemes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [previewingTheme, setPreviewingTheme] = useState(null);
 
   // Local form state
-  const [lightThemeId, setLightThemeId] = useState("");
-  const [darkThemeId, setDarkThemeId] = useState("");
-  const [defaultMode, setDefaultMode] = useState("system");
+  const [selectedThemeId, setSelectedThemeId] = useState("");
+  const [defaultMode, setDefaultMode] = useState("light");
   const [allowUserOverride, setAllowUserOverride] = useState(true);
 
-  // Load current setting
-  useEffect(() => {
-    loadSetting();
-  }, []);
-
-  async function loadSetting() {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/admin/platform-theme");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.setting) {
-          setSetting(data.setting);
-          setLightThemeId(data.setting.lightThemeId);
-          setDarkThemeId(data.setting.darkThemeId);
-          setDefaultMode(data.setting.defaultMode);
-          setAllowUserOverride(data.setting.allowUserOverride);
+      
+      // Load current platform theme setting
+      const settingRes = await fetch("/api/admin/platform-theme");
+      if (settingRes.ok) {
+        const settingData = await settingRes.json();
+        if (settingData.setting) {
+          setSetting(settingData.setting);
+          setSelectedThemeId(
+            settingData.setting.activeThemeId ||
+              settingData.setting.lightThemeId ||
+              settingData.setting.darkThemeId ||
+              ""
+          );
+          setDefaultMode(settingData.setting.defaultMode === "dark" ? "dark" : "light");
+          setAllowUserOverride(settingData.setting.allowUserOverride);
         }
-      } else {
-        toast.error("Failed to load platform theme setting");
+      }
+
+      // Load all available themes
+      const themesRes = await fetch("/api/admin/themes");
+      if (themesRes.ok) {
+        const themesData = await themesRes.json();
+        if (themesData.themes) {
+          // Filter for selectable themes (active, available, not locked)
+          const selectableThemes = themesData.themes.filter(
+            t => t.isActive && t.isAvailable && !t.isLocked
+          );
+          setThemes(selectableThemes);
+        }
       }
     } catch (error) {
-      console.error("Failed to load setting:", error);
-      toast.error("Failed to load platform theme setting");
+      console.error("Failed to load data:", error);
+      toast.error("Failed to load platform theme data");
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  // Load current setting and themes
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      loadData();
+    }, 0);
+
+    return () => window.clearTimeout(id);
+  }, [loadData]);
 
   async function handleSave() {
+    if (!selectedThemeId) {
+      toast.error("Please select a platform theme");
+      return;
+    }
+
     try {
       setSaving(true);
       const res = await fetch("/api/admin/platform-theme", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          lightThemeId,
-          darkThemeId,
+          activeThemeId: selectedThemeId,
+          lightThemeId: selectedThemeId,
+          darkThemeId: selectedThemeId,
           defaultMode,
           allowUserOverride,
         }),
@@ -71,6 +100,8 @@ export default function PlatformThemePage() {
       const data = await res.json();
       if (data.success) {
         setSetting(data.setting);
+        setSelectedThemeId(data.setting.activeThemeId || data.setting.lightThemeId);
+        localStorage.setItem("sitecraft_platform_theme_mode", data.setting.defaultMode || defaultMode);
         toast.success("Platform theme updated successfully");
       } else {
         toast.error(data.message || "Failed to save platform theme");
@@ -83,9 +114,16 @@ export default function PlatformThemePage() {
     }
   }
 
+  function handleSelectTheme(themeId, mode) {
+    setSelectedThemeId(themeId);
+    if (mode === "light" || mode === "dark") {
+      setDefaultMode(mode);
+    }
+  }
+
   async function handleReset() {
     const confirmed = window.confirm(
-      "Reset to fallback platform theme? This will set:\n- Light: White + Green + Orange\n- Dark: Dark Slate + Emerald"
+      "Reset to fallback platform theme?\n\nThis will set all platforms to the default SiteCraft theme."
     );
     if (!confirmed) return;
 
@@ -95,9 +133,10 @@ export default function PlatformThemePage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          lightThemeId: "white-green-orange",
-          darkThemeId: "dark-slate-emerald",
-          defaultMode: "system",
+          activeThemeId: "emerald",
+          lightThemeId: "emerald",
+          darkThemeId: "emerald",
+          defaultMode: "light",
           allowUserOverride: true,
         }),
       });
@@ -105,10 +144,10 @@ export default function PlatformThemePage() {
       const data = await res.json();
       if (data.success) {
         setSetting(data.setting);
-        setLightThemeId(data.setting.lightThemeId);
-        setDarkThemeId(data.setting.darkThemeId);
+        setSelectedThemeId(data.setting.activeThemeId || data.setting.lightThemeId);
         setDefaultMode(data.setting.defaultMode);
         setAllowUserOverride(data.setting.allowUserOverride);
+        localStorage.setItem("sitecraft_platform_theme_mode", data.setting.defaultMode || "light");
         toast.success("Reset to fallback platform theme");
       } else {
         toast.error(data.message || "Failed to reset");
@@ -123,109 +162,156 @@ export default function PlatformThemePage() {
 
   if (loading) {
     return (
-      <div>
-        <AdminPageHeader title="Platform Theme" description="Manage the default theme for public website and user dashboard" />
-        <div className="flex items-center justify-center py-12">
+      <div className="bg-background text-foreground">
+        <AdminPageHeader 
+          title="Platform Theme" 
+          description="Control the default visual theme for the public website and user dashboard"
+        />
+        <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <div className="mb-4 inline-block">
-              <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
             </div>
-            <p className="text-gray-600">Loading platform theme settings...</p>
+            <p className="text-muted-foreground">Loading platform themes...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div>
-      <AdminPageHeader title="Platform Theme" description="Manage the default theme for public website and user dashboard" />
+  const selectedTheme = themes.find(t => t.themeId === selectedThemeId);
 
-      <div className="max-w-4xl mx-auto space-y-8 p-8">
-        {/* Current Active Card */}
+  return (
+    <div className="space-y-8 bg-background text-foreground">
+      <AdminPageHeader 
+        title="Platform Theme" 
+        description="Control the default visual theme for the public website and user dashboard"
+      />
+
+      <div className="max-w-7xl mx-auto px-8 pb-8">
+        {/* Info Banner */}
+        <div className="mb-8 bg-primary/10 border border-primary/20 rounded-xl p-4">
+          <p className="text-sm text-foreground">
+            <span className="font-semibold">Note:</span> This setting only affects the main platform UI (public website, auth pages, and user dashboard). 
+            It does not affect user-generated website themes.
+          </p>
+        </div>
+
+        {/* Current Active Theme Card */}
         {setting && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-            <div className="flex items-start justify-between">
+          <div className="mb-8 bg-card text-card-foreground rounded-xl p-6 border border-border shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h3 className="font-semibold text-lg mb-2">Current Active Platform Theme</h3>
-                <div className="space-y-1 text-sm">
-                  <p>
-                    <span className="text-gray-600">Light Theme:</span>{" "}
-                    <span className="font-medium">{PLATFORM_THEME_OPTIONS.find((t) => t.id === setting.lightThemeId)?.name || setting.lightThemeId}</span>
-                  </p>
-                  <p>
-                    <span className="text-gray-600">Dark Theme:</span>{" "}
-                    <span className="font-medium">{PLATFORM_THEME_OPTIONS.find((t) => t.id === setting.darkThemeId)?.name || setting.darkThemeId}</span>
-                  </p>
-                  <p>
-                    <span className="text-gray-600">Default Mode:</span>{" "}
-                    <span className="font-medium capitalize">{setting.defaultMode}</span>
-                  </p>
-                  <p>
-                    <span className="text-gray-600">User Override:</span>{" "}
-                    <span className="font-medium">{setting.allowUserOverride ? "Allowed" : "Disabled"}</span>
-                  </p>
+                <div className="flex items-center gap-2 mb-4">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold text-lg">Current Platform Theme</h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Selected Theme</p>
+                    <p className="font-medium">{selectedTheme?.name || selectedThemeId}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Mode Pair</p>
+                    <p className="font-medium">Light and dark from same theme</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Default Mode</p>
+                      <p className="font-medium capitalize">{defaultMode}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">User Override</p>
+                      <p className="font-medium">{allowUserOverride ? "Allowed" : "Disabled"}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <Palette className="w-8 h-8 text-blue-600 flex-shrink-0" />
+              
+              {/* Last Updated Info */}
+              <div className="flex flex-col justify-between">
+                <div>
+                  {setting.updatedAt && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                      <Clock className="w-4 h-4" />
+                      <span>Last updated: {new Date(setting.updatedAt).toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Theme Selection */}
-        <div className="space-y-6 border rounded-lg p-6">
-          <div>
-            <label className="block text-sm font-semibold mb-3">Light Theme</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {PLATFORM_THEME_OPTIONS.map((theme) => (
-                <button
-                  key={theme.id}
-                  onClick={() => setLightThemeId(theme.id)}
-                  className={`p-3 rounded-lg text-left border-2 transition-all ${
-                    lightThemeId === theme.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300 bg-gray-50"
-                  }`}
-                >
-                  <div className="font-medium text-sm">{theme.name}</div>
-                  <div className="text-xs text-gray-600">{theme.description}</div>
-                </button>
-              ))}
+        {/* Theme Selection Grid */}
+        <div className="mb-12">
+          <div className="mb-8">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-2xl font-bold text-foreground mb-2">
+                  Available Themes
+                </h3>
+                <p className="text-muted-foreground">
+                  Click any theme to preview it. Selecting a new theme replaces the previous selection.
+                </p>
+              </div>
+              <div className="text-right text-sm text-muted-foreground">
+                {themes.length} themes available
+              </div>
             </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-3">Dark Theme</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {PLATFORM_THEME_OPTIONS.map((theme) => (
-                <button
-                  key={theme.id}
-                  onClick={() => setDarkThemeId(theme.id)}
-                  className={`p-3 rounded-lg text-left border-2 transition-all ${
-                    darkThemeId === theme.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300 bg-gray-50"
-                  }`}
-                >
-                  <div className="font-medium text-sm">{theme.name}</div>
-                  <div className="text-xs text-gray-600">{theme.description}</div>
-                </button>
-              ))}
-            </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {themes.map((theme) => (
+              <ThemeSelectionCard
+                key={theme.themeId}
+                theme={theme}
+                isSelected={selectedThemeId === theme.themeId}
+                isLocked={theme.isLocked}
+                isInactive={!theme.isActive}
+                onPreview={() => setPreviewingTheme(theme)}
+              />
+            ))}
           </div>
 
+          {themes.length === 0 && (
+            <div className="text-center py-16">
+              <Palette className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground text-lg">No themes available</p>
+            </div>
+          )}
+        </div>
+
+        {/* Theme Preview Modal */}
+        <ThemeSelectionModal
+          theme={previewingTheme}
+          isOpen={!!previewingTheme}
+          onClose={() => setPreviewingTheme(null)}
+          onSelectTheme={handleSelectTheme}
+          selectedThemeId={selectedThemeId}
+        />
+
+        {/* Settings Section */}
+        <div className="bg-card border border-border rounded-xl p-6 space-y-6 mb-8 shadow-sm">
+          {/* Default Mode */}
           <div>
-            <label className="block text-sm font-semibold mb-3">Default Mode for New Users</label>
-            <div className="flex gap-3">
-              {["light", "dark", "system"].map((mode) => (
+            <label className="block text-sm font-semibold text-foreground mb-3">
+              Default Mode for New Users
+            </label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Determines what mode visitors see first
+            </p>
+            <div className="flex gap-3 flex-wrap">
+              {["light", "dark"].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setDefaultMode(mode)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  className={cn(
+                    "px-6 py-2 rounded-lg font-medium transition-all",
                     defaultMode === mode
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                  }`}
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "bg-muted text-muted-foreground hover:bg-secondary"
+                  )}
                 >
                   {mode.charAt(0).toUpperCase() + mode.slice(1)}
                 </button>
@@ -233,28 +319,34 @@ export default function PlatformThemePage() {
             </div>
           </div>
 
-          <div>
-            <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+          {/* User Override Toggle */}
+          <div className="border-t border-border pt-6">
+            <label className="flex items-start gap-4 p-4 border border-border rounded-lg hover:bg-muted transition-colors cursor-pointer">
               <input
                 type="checkbox"
                 checked={allowUserOverride}
                 onChange={(e) => setAllowUserOverride(e.target.checked)}
-                className="w-4 h-4"
+                className="w-5 h-5 mt-1 rounded"
               />
-              <div>
-                <div className="font-medium">Allow Users to Override Platform Theme</div>
-                <div className="text-sm text-gray-600">Users and guests can select their own theme if enabled</div>
+              <div className="flex-1">
+                <div className="font-semibold text-foreground">Allow Users to Change Platform Theme</div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  If enabled, users and guests can toggle between light/dark modes and save their preference
+                </p>
               </div>
             </label>
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Action Buttons */}
         <div className="flex gap-3 justify-end">
           <button
             onClick={handleReset}
             disabled={saving}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all disabled:opacity-50 flex items-center gap-2"
+            className={cn(
+              "px-4 py-2 rounded-lg border border-border text-foreground font-medium transition-all flex items-center gap-2",
+              saving ? "opacity-50 cursor-not-allowed" : "hover:bg-muted"
+            )}
           >
             <RotateCcw className="w-4 h-4" />
             Reset to Fallback
@@ -262,22 +354,30 @@ export default function PlatformThemePage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-6 py-2 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 transition-all disabled:opacity-50 flex items-center gap-2"
+            className={cn(
+              "px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium transition-all flex items-center gap-2",
+              saving ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
+            )}
           >
             <Save className="w-4 h-4" />
             {saving ? "Saving..." : "Save Changes"}
           </button>
         </div>
 
-        {/* Info */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900">
-          <p className="font-medium mb-1">ℹ️ What happens when you update?</p>
-          <ul className="list-disc list-inside space-y-1 text-amber-800">
-            <li>New visitors will see the new default theme</li>
-            <li>Users without custom preference will see the new theme</li>
-            <li>Users with saved theme preference will keep their choice (unless override is disabled)</li>
-            <li>All logged-in users will be notified of the change</li>
-          </ul>
+        {/* Help Section */}
+        <div className="mt-12 bg-accent/10 border border-accent/20 rounded-xl p-6">
+          <div className="flex gap-3">
+            <AlertCircle className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-foreground">
+              <p className="font-semibold mb-2">What happens when you update the platform theme?</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>All users and guests will see the new theme applied instantly</li>
+                <li>Users without a saved preference will see the new default</li>
+                <li>Users with custom theme preferences will keep their choice (if override is enabled)</li>
+                <li>The change applies in real-time across all open sessions</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>

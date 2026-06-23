@@ -103,7 +103,7 @@ export function CategoriesSection() {
       {/* Background layer */}
       <div className="absolute inset-0 pointer-events-none flex justify-center items-center opacity-30 dark:opacity-20 z-0">
         <div className="w-[1000px] h-[1000px] bg-primary/5 rounded-full blur-[150px] absolute -top-[20%]" />
-        <div className="w-[800px] h-[800px] bg-orange-500/5 rounded-full blur-[120px] absolute -bottom-[10%] -right-[10%]" />
+        <div className="w-[800px] h-[800px] bg-accent-soft rounded-full blur-[120px] absolute -bottom-[10%] -right-[10%]" />
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
@@ -121,12 +121,12 @@ export function CategoriesSection() {
           </div>
           <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tight mb-6">
             One AI Model. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
               Multiple Industries.
             </span>
           </h2>
           <p className="text-lg text-muted-foreground font-medium leading-relaxed">
-            We've specialized our AI to understand industry-specific nuances,
+            We&apos;ve specialized our AI to understand industry-specific nuances,
             delivering high-converting websites for every sector.
           </p>
         </motion.div>
@@ -159,9 +159,9 @@ export function CategoriesSection() {
                     {/* Visual Node */}
                     <div className="relative size-40 sm:size-48 shrink-0 rounded-[2rem] bg-background border border-border flex flex-col items-center justify-center overflow-hidden shadow-inner group-hover:border-primary/20 transition-colors">
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-                      <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center mb-3 relative z-10">
-                        <div className="size-14 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/40 group-hover:scale-110 transition-transform duration-500">
-                          <Icon className="size-6 text-white" />
+                      <div className="size-20 rounded-full bg-primary-soft flex items-center justify-center mb-3 relative z-10">
+                        <div className="size-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500">
+                          <Icon className="size-6" strokeWidth={2.4} />
                         </div>
                       </div>
                       <div className="text-center relative z-10">
@@ -176,7 +176,7 @@ export function CategoriesSection() {
 
                     {/* Content */}
                     <div className="flex-1 text-center sm:text-left">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-lg mb-4 border border-emerald-500/20">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-soft text-primary text-[10px] font-bold rounded-lg mb-4 border border-primary/20">
                         {cat.badge || "Fully Optimized"}
                       </div>
                       <h3 className="text-3xl font-black text-foreground mb-3 tracking-tight group-hover:text-primary transition-colors">

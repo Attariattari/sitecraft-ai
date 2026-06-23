@@ -11,12 +11,14 @@ import { PricingPreviewSection } from "@/components/home/PricingPreviewSection";
 import { FAQSection } from "@/components/home/FAQSection";
 import { FinalCTASection } from "@/components/home/FinalCTASection";
 import { Footer } from "@/components/home/Footer";
+import { HomeMouseSpotlight } from "@/components/home/HomeMouseSpotlight";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-background font-sans selection:bg-primary/20">
+    <div className="relative flex flex-col min-h-screen bg-background font-sans selection:bg-primary/20">
+      <HomeMouseSpotlight />
       <Navbar />
-      <main className="flex-1">
+      <main className="relative flex-1">
         <HeroSection />
         <TrustStatsSection />
         <ProblemSolutionSection />

@@ -72,7 +72,29 @@ export async function getAllThemes() {
   await dbConnect();
   const dbThemes = await Theme.find({}).sort({ sortOrder: 1, name: 1 }).lean();
 
-  const mergedThemes = [...dbThemes];
+  const mergedThemes = dbThemes.map((theme) => {
+    const preset = WEBSITE_THEMES[theme.themeId] || WEBSITE_THEMES[theme.slug];
+    if (!preset) return theme;
+
+    return {
+      ...theme,
+      name: theme.name || preset.name,
+      label: theme.label || preset.name,
+      description: theme.description || preset.description,
+      colors: theme.colors?.primary
+        ? theme.colors
+        : {
+            primary: preset.modes.light.primary,
+            secondary: preset.modes.light.secondary,
+            accent: preset.modes.light.accent,
+            background: preset.modes.light.background,
+            foreground: preset.modes.light.text,
+          },
+      tokens: theme.tokens && Object.keys(theme.tokens).length > 0
+        ? theme.tokens
+        : preset.modes,
+    };
+  });
   const dbThemeIds = dbThemes.map((t) => t.themeId);
 
   let sortFallback = 100;
@@ -125,13 +147,31 @@ export async function isThemeSelectable(themeId) {
   const theme = await Theme.findOne({
     $or: [{ themeId }, { slug: themeId }],
   }).lean();
-  if (!theme) return false;
+  if (!theme) return Boolean(WEBSITE_THEMES[themeId]);
 
   if (!theme.isActive) return false;
   if (!theme.isAvailable) return false;
   if (theme.isLocked) return false;
 
   return true;
+}
+
+/**
+ * Platform theme settings only need a known theme ID. The admin page controls
+ * which options are selectable, while this check prevents false rejects from
+ * older seeded theme records with missing availability flags.
+ */
+export async function themeExistsForPlatformTheme(themeId) {
+  if (!themeId || typeof themeId !== "string") return false;
+  if (WEBSITE_THEMES[themeId]) return true;
+
+  await dbConnect();
+
+  const theme = await Theme.exists({
+    $or: [{ themeId }, { slug: themeId }],
+  });
+
+  return Boolean(theme);
 }
 
 /**

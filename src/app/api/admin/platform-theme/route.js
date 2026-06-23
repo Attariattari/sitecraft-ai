@@ -4,6 +4,7 @@ import dbConnect from "@/lib/dbConnect";
 import PlatformThemeSetting from "@/models/PlatformThemeSetting";
 import { realtimeEmitter } from "@/lib/realtime/realtimeEmitter";
 import { REALTIME_EVENTS } from "@/lib/realtime/events";
+import { themeExistsForPlatformTheme } from "@/lib/themes/themeService";
 
 /**
  * GET /api/admin/platform-theme
@@ -44,7 +45,7 @@ export async function GET(req) {
  * {
  *   lightThemeId: "white-gray",
  *   darkThemeId: "dark-slate",
- *   defaultMode: "light" | "dark" | "system",
+ *   defaultMode: "light" | "dark",
  *   allowUserOverride: boolean
  * }
  */
@@ -60,8 +61,48 @@ export async function PATCH(req) {
 
     await dbConnect();
     const body = await req.json();
+    const { lightThemeId, darkThemeId, defaultMode } = body;
 
-    const updated = await PlatformThemeSetting.updateSetting(body, user.id);
+    if (!lightThemeId || !darkThemeId) {
+      return NextResponse.json(
+        { success: false, message: "Please select both light and dark themes" },
+        { status: 400 }
+      );
+    }
+
+    if (defaultMode && !["light", "dark"].includes(defaultMode)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid default mode" },
+        { status: 400 }
+      );
+    }
+
+    const [lightThemeExists, darkThemeExists] = await Promise.all([
+      themeExistsForPlatformTheme(lightThemeId),
+      themeExistsForPlatformTheme(darkThemeId),
+    ]);
+
+    if (!lightThemeExists || !darkThemeExists) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Selected platform theme was not found",
+          missing: {
+            lightThemeId: lightThemeExists ? null : lightThemeId,
+            darkThemeId: darkThemeExists ? null : darkThemeId,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    const updated = await PlatformThemeSetting.updateSetting(
+      {
+        ...body,
+        activeThemeId: body.activeThemeId || lightThemeId,
+      },
+      user.id
+    );
 
     // Emit realtime event for all clients
     try {
@@ -71,6 +112,7 @@ export async function PATCH(req) {
           title: "Platform Theme Updated",
           message: "The default platform theme has been updated.",
           setting: {
+            activeThemeId: updated.activeThemeId,
             lightThemeId: updated.lightThemeId,
             darkThemeId: updated.darkThemeId,
             defaultMode: updated.defaultMode,

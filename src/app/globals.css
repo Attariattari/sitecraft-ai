@@ -222,12 +222,12 @@
     .site-glass-card:hover {
         @apply shadow-premium;
         transform: translateY(-4px);
-        border-color: rgba(16, 185, 129, 0.3);
+        border-color: var(--card-border);
     }
 
     .dark .site-glass-card:hover {
         @apply shadow-premium-dark;
-        border-color: rgba(52, 211, 153, 0.4);
+        border-color: var(--card-border);
     }
 
     .site-section-soft {
@@ -235,12 +235,14 @@
     }
 
     .site-gradient-text {
-        @apply text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-600 font-black;
+        @apply text-transparent bg-clip-text font-black;
+        background-image: linear-gradient(90deg, var(--primary), var(--primary-dark));
     }
 
     .site-primary-button {
-        background: linear-gradient(135deg, #10B981, #059669);
-        @apply text-white font-bold transition-all duration-300;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: var(--primary-foreground);
+        @apply font-bold transition-all duration-300;
         box-shadow: 0 10px 20px -3px var(--glow-emerald);
     }
 
@@ -250,8 +252,8 @@
     }
 
     .dark .site-primary-button {
-        background: linear-gradient(135deg, #34D399, #10B981);
-        @apply text-slate-950;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: var(--primary-foreground);
     }
 
     .site-secondary-button {
@@ -327,4 +329,227 @@
         height: 0 !important;
         background: transparent;
     }
+
+    .text-emerald-100,
+    .text-emerald-200,
+    .text-emerald-300,
+    .text-emerald-400,
+    .text-emerald-500,
+    .text-emerald-600,
+    .text-emerald-700,
+    .dark .dark\:text-emerald-300,
+    .dark .dark\:text-emerald-400 {
+        color: var(--primary) !important;
+    }
+
+    .text-orange-300,
+    .text-orange-400,
+    .text-orange-500,
+    .text-orange-600 {
+        color: var(--accent) !important;
+    }
+
+    .bg-emerald-400,
+    .bg-emerald-500,
+    .bg-emerald-600,
+    .bg-emerald-700,
+    .hover\:bg-emerald-400:hover,
+    .hover\:bg-emerald-500:hover,
+    .hover\:bg-emerald-600:hover,
+    .hover\:bg-emerald-700:hover {
+        background-color: var(--primary) !important;
+    }
+
+    .bg-orange-400,
+    .bg-orange-500,
+    .bg-orange-600,
+    .hover\:bg-orange-500:hover,
+    .hover\:bg-orange-600:hover {
+        background-color: var(--accent) !important;
+    }
+
+    .bg-emerald-400\/10,
+    .bg-emerald-500\/5,
+    .bg-emerald-500\/10,
+    .bg-emerald-500\/12,
+    .bg-emerald-500\/15,
+    .bg-emerald-500\/20,
+    .bg-emerald-500\/25,
+    .bg-emerald-500\/30,
+    .bg-emerald-500\/40,
+    .hover\:bg-emerald-500\/10:hover,
+    .hover\:bg-emerald-500\/15:hover,
+    .hover\:bg-emerald-500\/20:hover,
+    .group:hover .group-hover\:bg-emerald-500\/10,
+    .group:hover .group-hover\:bg-emerald-500\/20 {
+        background-color: var(--primary-soft) !important;
+    }
+
+    .bg-orange-500\/10,
+    .bg-orange-500\/20,
+    .bg-orange-500\/30 {
+        background-color: var(--accent-soft) !important;
+    }
+
+    .border-emerald-400\/50,
+    .border-emerald-500,
+    .border-emerald-500\/10,
+    .border-emerald-500\/20,
+    .border-emerald-500\/30,
+    .border-emerald-500\/40,
+    .border-emerald-500\/50,
+    .hover\:border-emerald-500\/20:hover,
+    .hover\:border-emerald-500\/30:hover,
+    .group:hover .group-hover\:border-emerald-500\/20,
+    .group:hover .group-hover\:border-emerald-500\/30 {
+        border-color: var(--card-border) !important;
+    }
+
+    .ring-emerald-500\/20,
+    .ring-emerald-500\/50,
+    .focus-visible\:ring-emerald-500:focus-visible {
+        --tw-ring-color: var(--ring) !important;
+    }
+
+    .fill-emerald-500 {
+        fill: var(--primary) !important;
+    }
+
+    .from-emerald-300,
+    .from-emerald-400,
+    .from-emerald-500,
+    .from-emerald-600 {
+        --tw-gradient-from: var(--primary) var(--tw-gradient-from-position) !important;
+        --tw-gradient-to: color-mix(in srgb, var(--primary) 0%, transparent) var(--tw-gradient-to-position) !important;
+        --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from), var(--tw-gradient-to)) !important;
+    }
+
+    .to-emerald-200,
+    .to-emerald-300,
+    .to-emerald-400,
+    .to-emerald-500,
+    .to-emerald-600 {
+        --tw-gradient-to: var(--primary-dark) var(--tw-gradient-to-position) !important;
+    }
+
+    .via-emerald-500\/20 {
+        --tw-gradient-via: var(--primary-soft) var(--tw-gradient-via-position) !important;
+    }
+
+    .from-orange-400,
+    .from-orange-500,
+    .from-orange-600 {
+        --tw-gradient-from: var(--accent) var(--tw-gradient-from-position) !important;
+        --tw-gradient-to: color-mix(in srgb, var(--accent) 0%, transparent) var(--tw-gradient-to-position) !important;
+        --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from), var(--tw-gradient-to)) !important;
+    }
+
+    .to-orange-400,
+    .to-orange-500,
+    .to-orange-500\/10,
+    .to-orange-500\/20 {
+        --tw-gradient-to: var(--accent) var(--tw-gradient-to-position) !important;
+    }
+}
+
+html[data-platform-theme] {
+    --color-emerald-50: var(--primary-soft);
+    --color-emerald-100: var(--primary-soft);
+    --color-emerald-200: var(--primary-soft);
+    --color-emerald-300: var(--primary);
+    --color-emerald-400: var(--primary);
+    --color-emerald-500: var(--primary);
+    --color-emerald-600: var(--primary-dark);
+    --color-emerald-700: var(--primary-dark);
+    --color-emerald-800: var(--primary-dark);
+    --color-emerald-900: var(--primary-dark);
+    --color-orange-50: var(--accent-soft);
+    --color-orange-100: var(--accent-soft);
+    --color-orange-200: var(--accent-soft);
+    --color-orange-300: var(--accent);
+    --color-orange-400: var(--accent);
+    --color-orange-500: var(--accent);
+    --color-orange-600: var(--accent);
+    --color-orange-700: var(--accent);
+    --color-orange-800: var(--accent);
+    --color-orange-900: var(--accent);
+}
+
+html[data-platform-theme] body [class*="text-emerald-"] {
+    color: var(--primary) !important;
+}
+
+html[data-platform-theme] body [class*="text-orange-"] {
+    color: var(--accent) !important;
+}
+
+html[data-platform-theme] body [class*="bg-emerald-"] {
+    background-color: var(--primary) !important;
+}
+
+html[data-platform-theme] body [class*="bg-orange-"] {
+    background-color: var(--accent) !important;
+}
+
+html[data-platform-theme] body [class*="border-emerald-"],
+html[data-platform-theme] body [class*="border-orange-"] {
+    border-color: var(--card-border) !important;
+}
+
+html[data-platform-theme] body [class*="ring-emerald-"],
+html[data-platform-theme] body [class*="ring-orange-"] {
+    --tw-ring-color: var(--ring) !important;
+}
+
+html[data-platform-theme] body [class*="fill-emerald-"],
+html[data-platform-theme] body [class*="fill-orange-"] {
+    fill: currentColor !important;
+}
+
+html[data-platform-theme] body [class*="from-emerald-"] {
+    --tw-gradient-from: var(--primary) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: color-mix(in srgb, var(--primary) 0%, transparent) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from), var(--tw-gradient-to)) !important;
+}
+
+html[data-platform-theme] body [class*="via-emerald-"] {
+    --tw-gradient-via: var(--primary-soft) var(--tw-gradient-via-position) !important;
+}
+
+html[data-platform-theme] body [class*="to-emerald-"] {
+    --tw-gradient-to: var(--primary-dark) var(--tw-gradient-to-position) !important;
+}
+
+html[data-platform-theme] body [class*="from-orange-"] {
+    --tw-gradient-from: var(--accent) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: color-mix(in srgb, var(--accent) 0%, transparent) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from), var(--tw-gradient-to)) !important;
+}
+
+html[data-platform-theme] body [class*="via-orange-"],
+html[data-platform-theme] body [class*="to-orange-"] {
+    --tw-gradient-to: var(--accent) var(--tw-gradient-to-position) !important;
+}
+
+html[data-platform-theme] body .bg-emerald-500\/5,
+html[data-platform-theme] body .bg-emerald-500\/10,
+html[data-platform-theme] body .bg-emerald-500\/12,
+html[data-platform-theme] body .bg-emerald-500\/15,
+html[data-platform-theme] body .bg-emerald-500\/20,
+html[data-platform-theme] body .bg-emerald-500\/25,
+html[data-platform-theme] body .bg-emerald-500\/30,
+html[data-platform-theme] body .bg-emerald-500\/40,
+html[data-platform-theme] body .bg-emerald-400\/10,
+html[data-platform-theme] body .hover\:bg-emerald-500\/10:hover,
+html[data-platform-theme] body .hover\:bg-emerald-500\/15:hover,
+html[data-platform-theme] body .hover\:bg-emerald-500\/20:hover,
+html[data-platform-theme] body .group:hover .group-hover\:bg-emerald-500\/10,
+html[data-platform-theme] body .group:hover .group-hover\:bg-emerald-500\/20 {
+    background-color: var(--primary-soft) !important;
+}
+
+html[data-platform-theme] body .bg-orange-500\/10,
+html[data-platform-theme] body .bg-orange-500\/20,
+html[data-platform-theme] body .bg-orange-500\/30 {
+    background-color: var(--accent-soft) !important;
 }

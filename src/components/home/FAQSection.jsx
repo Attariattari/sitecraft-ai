@@ -56,12 +56,12 @@ export function FAQSection() {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center justify-center p-3 bg-secondary rounded-2xl mb-6 shadow-inner border border-border/50">
-            <MessageCircleQuestion className="size-6 text-foreground" />
+          <div className="inline-flex items-center justify-center p-3 bg-primary text-primary-foreground rounded-2xl mb-6 shadow-inner border border-primary/20">
+            <MessageCircleQuestion className="size-6" strokeWidth={2.4} />
           </div>
           <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight mb-4">
             Frequently Asked{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-orange-400">
+            <span className="text-primary">
               Questions
             </span>
           </h2>
@@ -80,17 +80,17 @@ export function FAQSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
-                className={`border rounded-2xl overflow-hidden transition-colors duration-300 ${isOpen ? "bg-background border-emerald-500/30 shadow-lg shadow-emerald-500/5" : "bg-transparent border-border/60 hover:bg-secondary/30"}`}
+                className={`border rounded-2xl overflow-hidden transition-colors duration-300 ${isOpen ? "bg-card border-primary shadow-lg" : "bg-transparent border-border/60 hover:bg-secondary/30"}`}
               >
                 <button
                   onClick={() => toggle(i)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-2xl"
+                  className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-2xl"
                 >
                   <span className="text-base font-bold text-foreground pr-4">
                     {faq.q}
                   </span>
                   <div
-                    className={`p-1 rounded-full transition-colors ${isOpen ? "bg-emerald-500/10 text-emerald-500" : "bg-secondary text-muted-foreground"}`}
+                    className={`p-1 rounded-full transition-colors ${isOpen ? "bg-primary text-primary-foreground" : "bg-foreground text-background"}`}
                   >
                     <ChevronDown
                       className={`size-4 transition-transform duration-300 ${isOpen ? "rotate-180" : "rotate-0"}`}
@@ -106,7 +106,7 @@ export function FAQSection() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                     >
                       <div className="px-6 pb-6 pt-0 text-muted-foreground leading-relaxed font-medium">
-                        <div className="w-8 h-px bg-emerald-500/30 mb-4" />
+                        <div className="w-8 h-px bg-primary mb-4" />
                         {faq.a}
                       </div>
                     </motion.div>

@@ -43,9 +43,7 @@ export async function GET(req) {
  * Update logged-in user's platform theme preference
  * Request body:
  * {
- *   mode: "light" | "dark" | "system",
- *   lightThemeId: "white-gray",
- *   darkThemeId: "dark-slate"
+ *   mode: "light" | "dark"
  * }
  */
 export async function PATCH(req) {
@@ -61,24 +59,24 @@ export async function PATCH(req) {
     await dbConnect();
     const body = await req.json();
     
-    const { mode, lightThemeId, darkThemeId } = body;
+    const { mode } = body;
     
-    if (!mode && !lightThemeId && !darkThemeId) {
+    if (!["light", "dark"].includes(mode)) {
       return NextResponse.json(
-        { success: false, message: "At least one field is required" },
+        { success: false, message: "Invalid theme mode" },
         { status: 400 }
       );
     }
 
-    // Build update object
-    const updateObj = {};
-    if (mode) updateObj["preferences.platformTheme.mode"] = mode;
-    if (lightThemeId) updateObj["preferences.platformTheme.lightThemeId"] = lightThemeId;
-    if (darkThemeId) updateObj["preferences.platformTheme.darkThemeId"] = darkThemeId;
-
     const updatedUser = await User.findByIdAndUpdate(
       user.id,
-      { $set: updateObj },
+      {
+        $set: { "preferences.platformTheme.mode": mode },
+        $unset: {
+          "preferences.platformTheme.lightThemeId": "",
+          "preferences.platformTheme.darkThemeId": "",
+        },
+      },
       { new: true }
     ).select("preferences.platformTheme");
 

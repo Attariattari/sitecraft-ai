@@ -1,33 +1,54 @@
+import { Compass, Layers, ShieldCheck, Sparkles } from "lucide-react";
+import { PublicPageHero } from "@/components/public/PublicPageHero";
+import { PublicCTA, PublicSection, ThemeCard } from "@/components/public/PublicCards";
+
 export const metadata = {
   title: "About | SiteCraft AI",
-  description: "Learn about SiteCraft AI and our mission",
+  description: "Learn about SiteCraft AI, our mission, product values, and website creation workflow.",
 };
+
+const values = [
+  { icon: Sparkles, title: "Make creation easier", description: "We help users move from idea to website structure without getting stuck in blank-page work." },
+  { icon: Layers, title: "Design should stay consistent", description: "The public website and generated experience are built around reusable systems instead of one-off styling." },
+  { icon: ShieldCheck, title: "Keep platform trust honest", description: "We avoid inflated claims and focus on clear workflows, secure access, and practical product value." },
+  { icon: Compass, title: "Guide users forward", description: "Every page should make the next step obvious, whether exploring templates or generating a website." },
+];
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-background py-20">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">About SiteCraft AI</h1>
-        <p className="text-lg text-gray-600 mb-8">
-          Our mission is to empower creators to build beautiful, professional portfolios effortlessly.
-        </p>
-        <div className="space-y-8">
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Our Story</h2>
-            <p className="text-gray-600 leading-relaxed">
-              SiteCraft AI was founded with a vision to democratize web design and make it accessible to everyone, regardless of technical skill.
+    <main className="min-h-screen bg-background">
+      <PublicPageHero
+        badge="About SiteCraft AI"
+        title="A practical AI website builder for"
+        highlight="modern creators."
+        description="SiteCraft AI exists to make professional website creation faster, clearer, and more accessible for creators, freelancers, and small teams."
+        secondaryHref="/features"
+        secondaryLabel="Explore Features"
+      />
+      <PublicSection eyebrow="Mission" title="Build polished websites without fighting the blank page">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
+            <h2 className="text-2xl font-black text-foreground">Why it exists</h2>
+            <p className="mt-4 text-sm font-medium leading-7 text-muted-foreground">
+              Website creation often gets slowed down by copywriting, layout decisions, theme choices, and publishing setup. SiteCraft AI brings those steps into one guided flow while keeping the design system consistent.
             </p>
-          </section>
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Our Values</h2>
-            <ul className="space-y-2 text-gray-600">
-              <li>• Simplicity - Make complex things simple</li>
-              <li>• Innovation - Stay at the forefront of technology</li>
-              <li>• Quality - Never compromise on quality</li>
-            </ul>
-          </section>
+          </div>
+          <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
+            <h2 className="text-2xl font-black text-foreground">What it solves</h2>
+            <p className="mt-4 text-sm font-medium leading-7 text-muted-foreground">
+              Users can describe what they need, choose a direction, preview the result, and move toward publishing with fewer manual decisions and a cleaner starting point.
+            </p>
+          </div>
         </div>
-      </div>
+      </PublicSection>
+      <PublicSection title="Product values">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {values.map((value) => (
+            <ThemeCard key={value.title} {...value} />
+          ))}
+        </div>
+      </PublicSection>
+      <PublicCTA title="Create a website that already feels organized." />
     </main>
   );
 }

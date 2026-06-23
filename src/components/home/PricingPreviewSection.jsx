@@ -55,7 +55,7 @@ export function PricingPreviewSection() {
   return (
     <section className="py-24 bg-background relative overflow-hidden">
       {/* Background glow */}
-      <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-accent-soft rounded-full blur-[100px] pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10">
         <motion.div
@@ -67,7 +67,7 @@ export function PricingPreviewSection() {
         >
           <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight mb-4">
             Simple, transparent{" "}
-            <span className="text-emerald-500">pricing</span>
+            <span className="text-primary">pricing</span>
           </h2>
           <p className="text-lg text-muted-foreground font-medium">
             Start building for free today. Upgrade when you need more power and
@@ -85,12 +85,12 @@ export function PricingPreviewSection() {
               transition={{ duration: 0.5, delay: i * 0.1 }}
               className={`relative flex flex-col p-8 rounded-[2rem] border transition-all duration-300 ${
                 plan.active
-                  ? "bg-background border-emerald-500/40 shadow-2xl shadow-emerald-500/10 scale-100 md:scale-105 z-10"
-                  : "bg-secondary/20 border-border/40 opacity-90 scale-95 md:scale-100 grayscale-[0.2]"
+                  ? "bg-card border-primary shadow-2xl scale-100 md:scale-105 z-10"
+                  : "bg-card/70 border-border scale-95 md:scale-100"
               }`}
             >
               {plan.active && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-emerald-500 to-emerald-400 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-emerald-500/30">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg">
                   Current MVP
                 </div>
               )}
@@ -100,12 +100,18 @@ export function PricingPreviewSection() {
                   <h3 className="text-2xl font-bold text-foreground mb-1">
                     {plan.name}
                   </h3>
-                  <div className="text-[11px] font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded border border-border/50 inline-block">
+                  <div
+                    className={`text-[11px] font-bold px-2 py-0.5 rounded border inline-block ${
+                      plan.active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-foreground text-background border-foreground/20"
+                    }`}
+                  >
                     {plan.status}
                   </div>
                 </div>
                 {!plan.active && (
-                  <Lock className="size-5 text-muted-foreground/50" />
+                  <Lock className="size-5 text-muted-foreground" />
                 )}
               </div>
 
@@ -123,9 +129,10 @@ export function PricingPreviewSection() {
                 {plan.features.map((feature, j) => (
                   <li key={j} className="flex items-start gap-3">
                     <CheckCircle2
-                      className={`size-5 shrink-0 ${plan.active ? "text-emerald-500" : "text-muted-foreground"}`}
+                      className={`size-5 shrink-0 ${plan.active ? "text-primary" : "text-muted-foreground"}`}
+                      strokeWidth={2.4}
                     />
-                    <span className="text-sm font-medium text-muted-foreground">
+                    <span className="text-sm font-medium text-foreground/75">
                       {feature}
                     </span>
                   </li>
@@ -135,8 +142,8 @@ export function PricingPreviewSection() {
               <button
                 className={`w-full py-4 rounded-xl text-sm font-bold transition-all ${
                   plan.active
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20"
-                    : "bg-secondary border border-border text-muted-foreground hover:text-foreground"
+                    ? "bg-primary hover:opacity-90 text-primary-foreground shadow-lg"
+                    : "bg-foreground text-background border border-border opacity-70 cursor-not-allowed"
                 }`}
                 disabled={!plan.active}
               >

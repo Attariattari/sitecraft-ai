@@ -21,10 +21,12 @@ import { cn } from "@/lib/utils";
 import { SiteCraftLogo } from "@/components/common/SiteCraftLogo";
 
 const navLinks = [
-  { label: "Features", href: "#features" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Categories", href: "#categories" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Features", href: "/features" },
+  { label: "Templates", href: "/templates" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "How It Works", href: "/how-it-works" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
 ];
 
 function NavUserMenu() {
@@ -86,7 +88,7 @@ function NavUserMenu() {
             className="w-8 h-8 rounded-full object-cover border border-border"
           />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-xs font-bold">
             {initials}
           </div>
         )}
@@ -194,7 +196,7 @@ export function Navbar() {
       transition={{ duration: 0.55, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-white/80 dark:bg-[#070f0c]/80 backdrop-blur-2xl border-b border-[var(--border)] shadow-sm"
+          ? "bg-background/80 backdrop-blur-2xl border-b border-border shadow-sm"
           : "bg-transparent"
       }`}
     >
@@ -285,7 +287,7 @@ export function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="md:hidden overflow-hidden bg-white/95 dark:bg-[#070f0c]/95 backdrop-blur-2xl border-b border-[var(--border)]"
+            className="md:hidden overflow-hidden bg-background/95 backdrop-blur-2xl border-b border-border"
           >
             <div className="container mx-auto px-6 py-6 flex flex-col gap-2">
               {navLinks.map((link) => (
@@ -311,7 +313,7 @@ export function Navbar() {
                           className="w-10 h-10 rounded-full object-cover border border-border"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center text-white text-sm font-bold">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-sm font-bold">
                           {user.name
                             ? user.name
                                 .split(" ")

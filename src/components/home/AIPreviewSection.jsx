@@ -24,7 +24,7 @@ export function AIPreviewSection() {
         >
           <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight mb-4">
             See What AI Can Build <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-emerald-300 mt-2 inline-block">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mt-2 inline-block">
               Instantly
             </span>
           </h2>
@@ -42,7 +42,7 @@ export function AIPreviewSection() {
           transition={{ duration: 0.7 }}
           className="max-w-6xl mx-auto"
         >
-          <div className="bg-secondary/20 rounded-[2rem] border border-border/50 shadow-2xl backdrop-blur-xl overflow-hidden flex flex-col md:flex-row shadow-emerald-500/5">
+          <div className="bg-secondary/20 rounded-[2rem] border border-border/50 shadow-2xl backdrop-blur-xl overflow-hidden flex flex-col md:flex-row shadow-primary/5">
             {/* Left sidebar - Settings Simulator */}
             <div className="w-full md:w-72 bg-background/80 border-r border-border/50 p-6 flex flex-col gap-8 shrink-0 relative z-10">
               <div>
@@ -53,7 +53,7 @@ export function AIPreviewSection() {
                   {["Portfolio", "SaaS", "Agency", "Startup"].map((chip, i) => (
                     <div
                       key={i}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${i === 0 ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "border-border/60 text-muted-foreground hover:bg-secondary"}`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${i === 0 ? "border-primary bg-primary-soft text-primary" : "border-border/60 text-muted-foreground hover:bg-secondary"}`}
                     >
                       {chip}
                     </div>
@@ -66,16 +66,16 @@ export function AIPreviewSection() {
                   <Palette className="size-4" /> Theme Switcher
                 </h3>
                 <div className="flex gap-3">
-                  <div className="size-8 rounded-full bg-slate-900 border-2 border-emerald-500 ring-2 ring-emerald-500/20" />
-                  <div className="size-8 rounded-full bg-slate-100 border border-border" />
-                  <div className="size-8 rounded-full bg-[#1e1b4b] border border-border" />
-                  <div className="size-8 rounded-full bg-[#052e16] border border-border" />
+                  <div className="size-8 rounded-full bg-primary border-2 border-primary ring-2 ring-primary/20" />
+                  <div className="size-8 rounded-full bg-background border border-border" />
+                  <div className="size-8 rounded-full bg-primary border border-border" />
+                  <div className="size-8 rounded-full bg-accent border border-border" />
                 </div>
               </div>
 
               <div className="mt-auto pt-6 border-t border-border/50">
                 <div className="flex items-center gap-3 text-sm font-bold text-foreground mb-3">
-                  <Loader2 className="size-4 animate-spin text-emerald-500" />
+                  <Loader2 className="size-4 animate-spin text-primary" />
                   AI is Thinking...
                 </div>
                 <div className="w-full h-2 rounded-full bg-secondary overflow-hidden">
@@ -87,7 +87,7 @@ export function AIPreviewSection() {
                       repeat: Infinity,
                       ease: "easeInOut",
                     }}
-                    className="h-full bg-emerald-500 rounded-full"
+                    className="h-full bg-primary rounded-full"
                   />
                 </div>
               </div>
@@ -104,7 +104,7 @@ export function AIPreviewSection() {
                 {/* Fake Navbar */}
                 <div className="flex justify-between items-center p-6 border-b border-border/30">
                   <div className="text-lg font-black text-foreground flex items-center gap-2">
-                    <div className="size-6 bg-emerald-500 rounded-md" />
+                    <div className="size-6 bg-primary rounded-md" />
                     Portfolio.
                   </div>
                   <div className="hidden sm:flex gap-6 text-sm font-semibold text-muted-foreground">
@@ -117,8 +117,8 @@ export function AIPreviewSection() {
 
                 {/* Fake Hero */}
                 <div className="p-12 md:p-16 text-center flex flex-col items-center border-b border-border/30 relative overflow-hidden">
-                  <div className="absolute top-[-50px] left-1/2 -translate-x-1/2 size-40 bg-emerald-500/20 blur-[60px] rounded-full pointer-events-none" />
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-xs font-bold mb-6">
+                  <div className="absolute top-[-50px] left-1/2 -translate-x-1/2 size-40 bg-primary-soft blur-[60px] rounded-full pointer-events-none" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-soft text-primary rounded-full text-xs font-bold mb-6">
                     <Sparkles className="size-3" /> Full-Stack Developer
                   </div>
                   <h1 className="text-4xl md:text-5xl font-extrabold mb-4 relative z-10 text-foreground">

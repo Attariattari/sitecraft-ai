@@ -1,64 +1,21 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { usePlatformThemeContext } from "@/components/providers/PlatformThemeProvider";
 
-/**
- * Hook to manage platform theme persistence
- * Handles both user preferences and guest localStorage
- */
 export function usePlatformTheme() {
-  const [isDark, setIsDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const context = usePlatformThemeContext();
+  const [isDark, setIsDark] = useState(() =>
+    typeof document !== "undefined" ? document.documentElement.classList.contains("dark") : false
+  );
 
-  // Initialize theme on mount
-  useEffect(() => {
-    setMounted(true);
-    
-    // Check current mode from DOM
-    const html = document.documentElement;
-    const hasDarkClass = html.classList.contains("dark");
-    setIsDark(hasDarkClass);
-  }, []);
+  if (context) {
+    return context;
+  }
 
-  const toggleTheme = async (user) => {
-    const newDark = !isDark;
-    setIsDark(newDark);
-    
-    // Apply to DOM immediately
-    if (newDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-
-    // Save to DB if logged in
-    if (user && user.id) {
-      try {
-        await fetch("/api/user/platform-theme", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mode: newDark ? "dark" : "light",
-          }),
-        });
-      } catch (error) {
-        console.error("Failed to save theme to DB:", error);
-      }
-    } else {
-      // Save to localStorage for guests
-      try {
-        const stored = JSON.parse(localStorage.getItem("sitecraft_platform_theme") || "{}");
-        localStorage.setItem(
-          "sitecraft_platform_theme",
-          JSON.stringify({
-            ...stored,
-            mode: newDark ? "dark" : "light",
-            timestamp: Date.now(),
-          })
-        );
-      } catch (error) {
-        console.error("Failed to save theme to localStorage:", error);
-      }
-    }
+  const toggleTheme = () => {
+    const nextIsDark = !isDark;
+    setIsDark(nextIsDark);
+    document.documentElement.classList.toggle("dark", nextIsDark);
   };
 
-  return { isDark, toggleTheme, mounted };
+  return { isDark, toggleTheme, mounted: typeof document !== "undefined" };
 }

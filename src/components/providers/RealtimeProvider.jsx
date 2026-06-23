@@ -199,10 +199,28 @@ export function RealtimeProvider({ children }) {
         }
       };
 
+      const handlePlatformThemeUpdated = (payload) => {
+        addToast({ 
+          title: payload?.title || "Platform Theme Updated",
+          message: payload?.message || "The platform theme has been updated.",
+          type: "info"
+        });
+        try {
+          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            const bc = new BroadcastChannel("sitecraft-platform-theme");
+            bc.postMessage({ type: "platform-theme:updated", payload });
+            bc.close();
+          }
+        } catch (e) {
+          // ignore
+        }
+      };
+
       realtimeClient.on(REALTIME_EVENTS.CATEGORY.LIST_REFRESH, handleCategoryUpdated);
       realtimeClient.on(REALTIME_EVENTS.CATEGORY.UPDATED, handleCategoryUpdated);
       realtimeClient.on(REALTIME_EVENTS.THEME.LIST_REFRESH, handleThemeUpdated);
       realtimeClient.on(REALTIME_EVENTS.THEME.UPDATED, handleThemeUpdated);
+      realtimeClient.on(REALTIME_EVENTS.PLATFORM_THEME.UPDATED, handlePlatformThemeUpdated);
       realtimeClient.on(REALTIME_EVENTS.USER.RESTRICTED, handleUserRestricted);
       realtimeClient.on(
         REALTIME_EVENTS.USER.UNRESTRICTED,
@@ -231,6 +249,10 @@ export function RealtimeProvider({ children }) {
         realtimeClient.off(
           REALTIME_EVENTS.USER.ROLE_UPDATED,
           handleRoleUpdated,
+        );
+        realtimeClient.off(
+          REALTIME_EVENTS.PLATFORM_THEME.UPDATED,
+          handlePlatformThemeUpdated,
         );
         realtimeClient.off("notification:new", handleNewNotification);
         realtimeClient.stopPolling();

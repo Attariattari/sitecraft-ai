@@ -18,7 +18,7 @@ const features = [
     title: "AI Content Generation",
     description:
       "Describe your business in plain English. Our AI writes compelling copy, headlines, and CTAs tailored to your niche — automatically.",
-    color: "#10B981",
+    tone: "primary",
     wide: true,
   },
   {
@@ -26,7 +26,7 @@ const features = [
     title: "20+ Premium Themes",
     description:
       "Choose from 20 professionally curated themes, each with light and dark modes.",
-    color: "#F97316",
+    tone: "accent",
     wide: false,
   },
   {
@@ -34,7 +34,7 @@ const features = [
     title: "One-Click Publish",
     description:
       "From idea to live website in under 2 minutes. Hosting, domain, and SSL — all handled.",
-    color: "#10B981",
+    tone: "primary",
     wide: false,
   },
   {
@@ -42,7 +42,7 @@ const features = [
     title: "Fully Responsive",
     description:
       "Every site is pixel-perfect on mobile, tablet, and desktop — no extra effort required.",
-    color: "#F97316",
+    tone: "accent",
     wide: true,
   },
   {
@@ -50,7 +50,7 @@ const features = [
     title: "Smart Layouts",
     description:
       "AI picks the optimal section structure for your site type — portfolio, SaaS, restaurant, and more.",
-    color: "#10B981",
+    tone: "primary",
     wide: false,
   },
   {
@@ -58,7 +58,7 @@ const features = [
     title: "Blazing Fast",
     description:
       "Static-first architecture delivers sub-second load times and top Core Web Vitals scores.",
-    color: "#F97316",
+    tone: "accent",
     wide: false,
   },
   {
@@ -66,7 +66,7 @@ const features = [
     title: "Custom Domains",
     description:
       "Connect your own domain or use a free sitecraft.ai subdomain. Propagation in minutes.",
-    color: "#10B981",
+    tone: "primary",
     wide: false,
   },
   {
@@ -74,10 +74,25 @@ const features = [
     title: "Enterprise Security",
     description:
       "SSL by default, data encryption at rest, SOC 2 compliant infrastructure, and automated backups.",
-    color: "#F97316",
+    tone: "accent",
     wide: true,
   },
 ];
+
+const featureTones = {
+  primary: {
+    color: "var(--primary)",
+    soft: "var(--primary-soft)",
+    glow: "color-mix(in srgb, var(--primary) 10%, transparent)",
+    line: "color-mix(in srgb, var(--primary) 38%, transparent)",
+  },
+  accent: {
+    color: "var(--accent)",
+    soft: "var(--accent-soft)",
+    glow: "color-mix(in srgb, var(--accent) 10%, transparent)",
+    line: "color-mix(in srgb, var(--accent) 38%, transparent)",
+  },
+};
 
 const container = {
   hidden: {},
@@ -122,6 +137,7 @@ export function FeaturesSection() {
         >
           {features.map((feature, i) => {
             const Icon = feature.icon;
+            const tone = featureTones[feature.tone] || featureTones.primary;
             return (
               <motion.div
                 key={i}
@@ -133,7 +149,7 @@ export function FeaturesSection() {
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-3xl"
                   style={{
-                    background: `radial-gradient(circle at 30% 30%, ${feature.color}10, transparent 60%)`,
+                    background: `radial-gradient(circle at 30% 30%, ${tone.glow}, transparent 60%)`,
                   }}
                 />
 
@@ -141,15 +157,15 @@ export function FeaturesSection() {
                 <div
                   className="absolute top-0 left-8 right-8 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                   style={{
-                    background: `linear-gradient(90deg, transparent, ${feature.color}60, transparent)`,
+                    background: `linear-gradient(90deg, transparent, ${tone.line}, transparent)`,
                   }}
                 />
 
                 <div
                   className="size-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 relative z-10"
                   style={{
-                    background: `${feature.color}18`,
-                    color: feature.color,
+                    background: tone.soft,
+                    color: tone.color,
                   }}
                 >
                   <Icon className="size-6" />
@@ -169,8 +185,8 @@ export function FeaturesSection() {
                   <div
                     className="absolute bottom-6 right-6 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     style={{
-                      background: `${feature.color}18`,
-                      color: feature.color,
+                      background: tone.soft,
+                      color: tone.color,
                     }}
                   >
                     Key Feature

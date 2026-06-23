@@ -67,7 +67,7 @@ export function AIFeaturesSection() {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight mb-4">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-emerald-300">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
               Intelligent
             </span>{" "}
             capabilities
@@ -88,14 +88,14 @@ export function AIFeaturesSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.05 }}
-                className="group relative flex flex-col p-6 rounded-[2rem] bg-background/50 border border-border/50 hover:border-emerald-500/30 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300"
+                className="group relative flex flex-col p-6 rounded-[2rem] bg-card border border-border overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
               >
                 {/* Hover Glow Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-soft to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col items-start gap-4">
-                  <div className="size-12 rounded-xl bg-secondary flex items-center justify-center shrink-0 border border-border/40 group-hover:scale-110 transition-transform duration-300 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/20">
-                    <Icon className="size-5 text-foreground group-hover:text-emerald-500 transition-colors" />
+                  <div className="size-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 border border-primary/20 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="size-5" strokeWidth={2.4} />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-foreground mb-1">

@@ -17,6 +17,7 @@
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
+    "install": "^0.13.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.18.0",
     "mongoose": "^9.7.0",

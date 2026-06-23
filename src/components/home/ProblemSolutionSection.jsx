@@ -49,7 +49,7 @@ export function ProblemSolutionSection() {
         >
           <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight mb-4">
             Stop struggling with <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-400 mt-2 inline-block">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary mt-2 inline-block">
               outdated builders
             </span>
           </h2>
@@ -70,8 +70,8 @@ export function ProblemSolutionSection() {
             className="p-8 md:p-10 rounded-[2rem] bg-secondary/30 border border-border/50 relative overflow-hidden shadow-lg"
           >
             <div className="flex items-center gap-4 mb-8">
-              <div className="size-12 rounded-2xl bg-foreground/5 border border-border/60 flex items-center justify-center">
-                <XCircle className="size-6 text-orange-500/70" />
+              <div className="size-12 rounded-2xl bg-accent-soft border border-border/60 flex items-center justify-center">
+                <XCircle className="size-6 text-accent" />
               </div>
               <h3 className="text-xl font-bold text-foreground">The Old Way</h3>
             </div>
@@ -106,17 +106,17 @@ export function ProblemSolutionSection() {
             whileInView={{ opacity: 1, x: 0, rotate: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="p-8 md:p-10 rounded-[2rem] bg-foreground relative overflow-hidden shadow-2xl shadow-emerald-500/10 border border-emerald-500/20"
+            className="p-8 md:p-10 rounded-[2rem] bg-card relative overflow-hidden shadow-2xl border border-primary/20"
           >
             {/* Glows */}
-            <div className="absolute -top-24 right-0 size-64 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />
-            <div className="absolute -bottom-24 left-0 size-64 bg-orange-500/10 blur-[80px] rounded-full pointer-events-none" />
+            <div className="absolute -top-24 right-0 size-64 bg-primary-soft blur-[80px] rounded-full pointer-events-none" />
+            <div className="absolute -bottom-24 left-0 size-64 bg-accent-soft blur-[80px] rounded-full pointer-events-none" />
 
             <div className="flex items-center gap-4 mb-8 relative z-10">
-              <div className="size-12 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <CheckCircle2 className="size-6 text-white" />
+              <div className="size-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                <CheckCircle2 className="size-6" />
               </div>
-              <h3 className="text-xl font-bold text-background dark:text-foreground">
+              <h3 className="text-xl font-bold text-foreground">
                 SiteCraft AI
               </h3>
             </div>
@@ -133,13 +133,13 @@ export function ProblemSolutionSection() {
                     transition={{ duration: 0.3, delay: 0.2 + i * 0.05 }}
                     className="flex items-center gap-4 group"
                   >
-                    <div className="size-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                    <div className="size-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
                       <Icon
-                        className="size-4 text-emerald-500"
+                        className="size-4"
                         strokeWidth={2.5}
                       />
                     </div>
-                    <span className="text-sm font-bold text-background dark:text-foreground">
+                    <span className="text-sm font-bold text-foreground">
                       {item.text}
                     </span>
                   </motion.li>

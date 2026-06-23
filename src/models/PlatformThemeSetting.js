@@ -2,18 +2,22 @@ import mongoose from "mongoose";
 
 const PlatformThemeSettingSchema = new mongoose.Schema(
   {
+    activeThemeId: {
+      type: String,
+      default: "default",
+    },
     lightThemeId: {
       type: String,
-      default: "white-green-orange",
+      default: "emerald",
     },
     darkThemeId: {
       type: String,
-      default: "dark-slate-emerald",
+      default: "modernDark",
     },
     defaultMode: {
       type: String,
-      enum: ["light", "dark", "system"],
-      default: "system",
+      enum: ["light", "dark"],
+      default: "light",
     },
     allowUserOverride: {
       type: Boolean,
@@ -34,19 +38,28 @@ PlatformThemeSettingSchema.statics.getOrCreate = async function () {
   let setting = await this.findOne({});
   if (!setting) {
     setting = await this.create({
-      lightThemeId: "white-green-orange",
-      darkThemeId: "dark-slate-emerald",
-      defaultMode: "system",
+      activeThemeId: "default",
+      lightThemeId: "emerald",
+      darkThemeId: "modernDark",
+      defaultMode: "light",
       allowUserOverride: true,
     });
+  } else if (!setting.activeThemeId) {
+    setting.activeThemeId = setting.lightThemeId || "default";
+    await setting.save();
+  } else if (setting.defaultMode === "system") {
+    setting.defaultMode = "light";
+    await setting.save();
   }
   return setting;
 };
 
 PlatformThemeSettingSchema.statics.updateSetting = async function (data, userId) {
   const setting = await this.getOrCreate();
+  if (data.activeThemeId) setting.activeThemeId = data.activeThemeId;
   if (data.lightThemeId) setting.lightThemeId = data.lightThemeId;
   if (data.darkThemeId) setting.darkThemeId = data.darkThemeId;
+  if (!data.activeThemeId && data.lightThemeId) setting.activeThemeId = data.lightThemeId;
   if (data.defaultMode) setting.defaultMode = data.defaultMode;
   if (data.hasOwnProperty("allowUserOverride")) setting.allowUserOverride = data.allowUserOverride;
   if (userId) setting.updatedBy = userId;

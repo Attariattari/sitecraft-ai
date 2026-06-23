@@ -5,35 +5,79 @@ import {
   ArrowRight,
   Sparkles,
   LayoutTemplate,
-  Play,
   Zap,
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-const floatingCards = [
-  { title: "Portfolio Site", badge: "Live Preview", color: "#10B981" },
-  { title: "SEO Pack", badge: "Optimized", color: "#F97316" },
-  { title: "Theme Engine", badge: "Active", color: "#10B981" },
-];
-
 export function HeroSection() {
   return (
     <section className="relative min-h-screen flex flex-col justify-center pt-24 pb-20 overflow-hidden">
       {/* Background Glows */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[10%] right-[10%] w-[500px] h-[400px] bg-orange-500/10 rounded-full blur-[100px]" />
-
-        {/* Subtle Grid */}
-        <div
-          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
+        <motion.div
+          className="absolute left-[9%] top-[18%] hidden w-48 rounded-2xl border border-border bg-card/70 p-4 shadow-2xl backdrop-blur-xl lg:block"
+          animate={{ y: [0, -14, 0], rotate: [-1, 1.5, -1] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="mb-3 flex items-center gap-2">
+            <span className="size-2 rounded-full bg-primary" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+              AI composing
+            </span>
+          </div>
+          <div className="space-y-2">
+            <motion.div
+              className="h-2 rounded-full bg-primary"
+              animate={{ width: ["42%", "78%", "52%"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="h-2 rounded-full bg-muted"
+              animate={{ width: ["72%", "48%", "82%"] }}
+              transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+        </motion.div>
+        <motion.div
+          className="absolute right-[8%] top-[25%] hidden w-56 rounded-2xl border border-border bg-background/70 p-4 shadow-2xl backdrop-blur-xl lg:block"
+          animate={{ y: [0, 16, 0], rotate: [1, -1.2, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+              Live theme
+            </span>
+            <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[9px] font-black text-primary">
+              Synced
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="size-7 rounded-full bg-primary shadow-sm" />
+            <span className="size-7 rounded-full bg-accent shadow-sm" />
+            <span className="size-7 rounded-full bg-background border border-border shadow-sm" />
+          </div>
+        </motion.div>
+        <motion.div
+          className="absolute bottom-[20%] left-[13%] hidden h-px w-80 origin-left bg-gradient-to-r from-transparent via-primary/50 to-transparent lg:block"
+          animate={{ scaleX: [0.35, 1, 0.35], opacity: [0.15, 0.7, 0.15] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute right-[18%] bottom-[16%] hidden h-px w-72 origin-right bg-gradient-to-r from-transparent via-accent/45 to-transparent lg:block"
+          animate={{ scaleX: [1, 0.45, 1], opacity: [0.55, 0.18, 0.55] }}
+          transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute left-1/2 top-[58%] hidden size-24 -translate-x-1/2 rounded-full border border-primary/20 lg:block"
+          animate={{ scale: [1, 1.25, 1], opacity: [0.18, 0.45, 0.18] }}
+          transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute left-1/2 top-[58%] hidden size-10 -translate-x-1/2 rounded-full bg-primary/20 blur-sm lg:block"
+          animate={{ scale: [0.8, 1.4, 0.8], opacity: [0.4, 0.9, 0.4] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
@@ -44,14 +88,14 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold shadow-lg shadow-emerald-500/10"
+            className="inline-flex items-center gap-2 mb-8 px-4 py-1.5 rounded-full border border-primary/30 bg-primary-soft text-primary text-xs font-bold shadow-lg"
           >
             <Sparkles className="size-3.5" />
             <span>SiteCraft AI V1 is Now Live</span>
-            <span className="w-1 h-4 bg-emerald-500/30 mx-1 rounded-full" />
+            <span className="w-1 h-4 bg-primary/30 mx-1 rounded-full" />
             <Link
               href="/templates"
-              className="flex items-center gap-1 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+              className="flex items-center gap-1 hover:opacity-80 transition-opacity"
             >
               Explore Templates <ArrowRight className="size-3" />
             </Link>
@@ -66,14 +110,14 @@ export function HeroSection() {
           >
             Build Beautiful Websites <br className="hidden md:block" />
             <span className="relative inline-block mt-2">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-emerald-300">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
                 with AI
               </span>
               <motion.span
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
-                className="absolute -bottom-2 left-0 right-0 h-[4px] bg-gradient-to-r from-emerald-500/60 to-emerald-500/5 rounded-full origin-left"
+                className="absolute -bottom-2 left-0 right-0 h-[4px] bg-gradient-to-r from-primary/60 to-primary/5 rounded-full origin-left"
               />
             </span>
           </motion.h1>
@@ -98,7 +142,7 @@ export function HeroSection() {
           >
             <Button
               size="lg"
-              className="h-14 px-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl w-full sm:w-auto text-base font-bold gap-2 group shadow-xl shadow-emerald-500/25 transition-all"
+              className="h-14 px-8 bg-primary hover:opacity-90 text-primary-foreground rounded-2xl w-full sm:w-auto text-base font-bold gap-2 group shadow-xl transition-all"
               asChild
             >
               <Link href="/generate">
@@ -113,7 +157,7 @@ export function HeroSection() {
               asChild
             >
               <Link href="/templates">
-                <LayoutTemplate className="size-4 text-emerald-500" />
+                <LayoutTemplate className="size-4 text-primary" />
                 View Templates
               </Link>
             </Button>
@@ -136,14 +180,14 @@ export function HeroSection() {
             >
               <div className="bg-background/80 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-2xl pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="size-8 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-                    <ShieldCheck className="size-4 text-emerald-500" />
+                  <div className="size-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+                    <ShieldCheck className="size-4" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-foreground">
                       SEO Score
                     </p>
-                    <p className="text-[10px] text-emerald-500 font-bold">
+                    <p className="text-[10px] text-primary font-bold">
                       Excellent 98/100
                     </p>
                   </div>
@@ -163,8 +207,8 @@ export function HeroSection() {
             >
               <div className="bg-background/80 backdrop-blur-xl border border-border/50 rounded-2xl p-4 shadow-2xl">
                 <div className="flex items-center gap-3">
-                  <div className="size-8 rounded-xl bg-orange-500/15 flex items-center justify-center">
-                    <Zap className="size-4 text-orange-500" />
+                  <div className="size-8 rounded-xl bg-accent text-accent-foreground flex items-center justify-center shadow-sm">
+                    <Zap className="size-4" />
                   </div>
                   <div>
                     <p className="text-xs font-bold text-foreground">
@@ -179,16 +223,16 @@ export function HeroSection() {
             </motion.div>
 
             {/* Main Mockup */}
-            <div className="relative overflow-hidden rounded-t-2xl lg:rounded-[2rem] border border-border/60 bg-background/50 backdrop-blur-lg shadow-2xl shadow-emerald-500/10">
+            <div className="relative overflow-hidden rounded-t-2xl lg:rounded-[2rem] border border-border/60 bg-background/50 backdrop-blur-lg shadow-2xl shadow-primary/10">
               {/* Browser chrome */}
               <div className="flex items-center gap-3 px-6 py-4 bg-secondary/30 border-b border-border/40">
                 <div className="flex gap-1.5">
                   <div className="size-3 rounded-full bg-red-400/60" />
                   <div className="size-3 rounded-full bg-amber-400/60" />
-                  <div className="size-3 rounded-full bg-emerald-400/60" />
+                  <div className="size-3 rounded-full bg-primary/60" />
                 </div>
                 <div className="flex-1 bg-background border border-border/50 rounded-full px-4 py-1.5 text-[10px] sm:text-xs text-muted-foreground font-mono max-w-sm mx-auto text-center flex justify-center items-center gap-2">
-                  <span className="text-emerald-500">
+                  <span className="text-primary">
                     <ShieldCheck className="size-3" />
                   </span>
                   sitecraft.ai/dashboard
@@ -199,7 +243,7 @@ export function HeroSection() {
               <div className="p-4 sm:p-8 md:p-12 bg-secondary/10 flex flex-col gap-6">
                 {/* Navbar mimic */}
                 <div className="flex justify-between items-center bg-background/60 p-4 rounded-2xl border border-border/40">
-                  <div className="w-24 h-6 rounded-lg bg-emerald-500/20" />
+                  <div className="w-24 h-6 rounded-lg bg-primary/20" />
                   <div className="hidden sm:flex gap-4">
                     <div className="w-16 h-4 rounded-full bg-muted" />
                     <div className="w-16 h-4 rounded-full bg-muted" />
@@ -215,12 +259,12 @@ export function HeroSection() {
                     <div className="w-5/6 h-4 rounded-md bg-muted mt-2" />
                     <div className="w-4/6 h-4 rounded-md bg-muted" />
                     <div className="flex gap-3 mt-4">
-                      <div className="w-24 h-10 rounded-xl bg-emerald-500/80" />
+                      <div className="w-24 h-10 rounded-xl bg-primary/80" />
                       <div className="w-24 h-10 rounded-xl bg-secondary" />
                     </div>
                   </div>
-                  <div className="h-48 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-orange-500/20 border border-border/30 flex items-center justify-center relative overflow-hidden">
-                    <Orbit className="size-16 text-emerald-500/30 absolute animate-pulse" />
+                  <div className="h-48 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border border-border/30 flex items-center justify-center relative overflow-hidden">
+                    <Orbit className="size-16 text-primary/30 absolute animate-pulse" />
                     <div className="absolute inset-0 bg-background/20 backdrop-blur-[2px]" />
                   </div>
                 </div>
@@ -232,7 +276,7 @@ export function HeroSection() {
                       key={i}
                       className="h-24 sm:h-32 bg-background/50 rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
                     >
-                      <div className="size-8 rounded-lg bg-emerald-500/10" />
+                      <div className="size-8 rounded-lg bg-primary/10" />
                       <div className="w-2/3 h-3 rounded-full bg-foreground/60" />
                       <div className="w-full h-2 rounded-full bg-muted" />
                       <div className="w-4/5 h-2 rounded-full bg-muted" />

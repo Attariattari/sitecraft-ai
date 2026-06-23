@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { getPlatformThemeForGuest } from "@/lib/platformThemeResolver";
+import {
+  FALLBACK_PLATFORM_THEME,
+  getPlatformThemeForGuest,
+} from "@/lib/platformThemeResolver";
 
 /**
  * GET /api/platform-theme
@@ -9,10 +12,11 @@ import { getPlatformThemeForGuest } from "@/lib/platformThemeResolver";
  */
 export async function GET(req) {
   try {
-    const theme = await getPlatformThemeForGuest();
+    const { source, theme } = await getPlatformThemeForGuest();
     
     return NextResponse.json({
       success: true,
+      source,
       theme,
     });
   } catch (error) {
@@ -20,12 +24,8 @@ export async function GET(req) {
     return NextResponse.json(
       {
         success: true,
-        theme: {
-          lightThemeId: "white-green-orange",
-          darkThemeId: "dark-slate-emerald",
-          defaultMode: "system",
-          allowUserOverride: true,
-        },
+        source: "fallback",
+        theme: FALLBACK_PLATFORM_THEME,
       },
       { status: 200 }
     );

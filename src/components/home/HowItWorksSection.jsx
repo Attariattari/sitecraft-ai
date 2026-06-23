@@ -50,7 +50,7 @@ export function HowItWorksSection() {
         >
           <h2 className="text-3xl md:text-5xl font-extrabold text-foreground tracking-tight mb-4">
             Building a website has{" "}
-            <span className="text-emerald-500">never been easier</span>
+            <span className="text-primary">never been easier</span>
           </h2>
           <p className="text-lg text-muted-foreground font-medium">
             A smooth, optimized process that turns your idea into a live digital
@@ -60,7 +60,7 @@ export function HowItWorksSection() {
 
         <div className="relative max-w-6xl mx-auto">
           {/* Connecting Line (Desktop) */}
-          <div className="hidden lg:block absolute top-[60px] left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-emerald-500/0 via-emerald-500/20 to-emerald-500/0" />
+          <div className="hidden lg:block absolute top-[60px] left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent opacity-30" />
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {steps.map((step, i) => {
@@ -74,9 +74,9 @@ export function HowItWorksSection() {
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                   className="relative group flex flex-col items-center lg:items-start text-center lg:text-left z-10"
                 >
-                  <div className="size-16 rounded-2xl bg-secondary/80 border border-border/50 flex items-center justify-center mb-6 shadow-xl shadow-emerald-500/5 group-hover:scale-110 group-hover:border-emerald-500/30 group-hover:bg-emerald-500/10 transition-all duration-300 relative">
-                    <Icon className="size-6 text-foreground group-hover:text-emerald-500 transition-colors" />
-                    <div className="absolute -top-3 -right-3 size-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-[10px] font-black shadow-lg shadow-orange-500/30">
+                  <div className="size-16 rounded-2xl bg-primary text-primary-foreground border border-primary/20 flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 transition-all duration-300 relative">
+                    <Icon className="size-6" strokeWidth={2.4} />
+                    <div className="absolute -top-3 -right-3 size-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center text-[10px] font-black shadow-lg">
                       {step.number}
                     </div>
                   </div>
