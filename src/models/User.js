@@ -1,5 +1,15 @@
 import mongoose from "mongoose";
 
+const PLATFORM_THEME_MODES = ["light", "dark"];
+
+function normalizePlatformThemeMode(mode) {
+    return PLATFORM_THEME_MODES.includes(mode) ? mode : "light";
+}
+
+function normalizeThemePreference(theme) {
+    return ["light", "dark"].includes(theme) ? theme : "light";
+}
+
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -14,7 +24,7 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: function() {
+        required: function () {
             return this.authProvider === "credentials" || !this.authProvider;
         },
         select: false,
@@ -201,8 +211,9 @@ const UserSchema = new mongoose.Schema({
     preferences: {
         theme: {
             type: String,
-            enum: ["light", "dark", "system"],
-            default: "system",
+            enum: ["light", "dark"],
+            default: "light",
+            set: normalizeThemePreference,
         },
         emailNotifications: { type: Boolean, default: true },
         defaultThemeId: {
@@ -212,8 +223,9 @@ const UserSchema = new mongoose.Schema({
         platformTheme: {
             mode: {
                 type: String,
-                enum: ["light", "dark", "system"],
-                default: "",
+                enum: PLATFORM_THEME_MODES,
+                default: "light",
+                set: normalizePlatformThemeMode,
             },
             lightThemeId: {
                 type: String,
@@ -271,13 +283,28 @@ const UserSchema = new mongoose.Schema({
     },
 }, {
     timestamps: true,
-}, );
+},);
 
 // We define an index on createdAt as requested
 UserSchema.index({ createdAt: -1 });
 
+UserSchema.pre("validate", function () {
+    if (!this.preferences) {
+        this.preferences = {};
+    }
+
+    if (!this.preferences.platformTheme) {
+        this.preferences.platformTheme = {};
+    }
+
+    this.preferences.theme = normalizeThemePreference(this.preferences.theme);
+    this.preferences.platformTheme.mode = normalizePlatformThemeMode(
+        this.preferences.platformTheme.mode,
+    );
+});
+
 // Protect Root Super Admin from being modified
-UserSchema.pre("save", async function() {
+UserSchema.pre("save", async function () {
     const ROOT_EMAIL = process.env.ROOT_SUPER_ADMIN_EMAIL;
 
     // Migration logic for old accountPurpose
@@ -311,8 +338,8 @@ UserSchema.pre("save", async function() {
 
     // Sync manualProfile if missing
     if (
-        this.authProviders ? .credentials &&
-        !this.manualProfile ? .name &&
+        this.authProviders?.credentials &&
+        !this.manualProfile?.name &&
         this.name
     ) {
         this.manualProfile.name = this.name;
@@ -327,9 +354,9 @@ UserSchema.pre("save", async function() {
 
     // Update top-level displayed profile based on lastLoginProvider if not set
     // This allows display-layer components to use user.name/user.profileImage directly
-    if (this.lastLoginProvider === "google" && this.googleProfile ? .name) {
+    if (this.lastLoginProvider === "google" && this.googleProfile?.name) {
         this.name = this.googleProfile.name;
-        if (this.googleProfile.cloudinaryImage ? .url) {
+        if (this.googleProfile.cloudinaryImage?.url) {
             this.profileImage = {
                 url: this.googleProfile.cloudinaryImage.url,
                 publicId: this.googleProfile.cloudinaryImage.publicId,
@@ -338,10 +365,10 @@ UserSchema.pre("save", async function() {
         }
     } else if (
         this.lastLoginProvider === "credentials" &&
-        this.manualProfile ? .name
+        this.manualProfile?.name
     ) {
         this.name = this.manualProfile.name;
-        if (this.manualProfile.profileImage ? .url) {
+        if (this.manualProfile.profileImage?.url) {
             this.profileImage = {
                 url: this.manualProfile.profileImage.url,
                 publicId: this.manualProfile.profileImage.publicId,
@@ -379,7 +406,7 @@ UserSchema.pre("save", async function() {
 });
 
 // Prevent Root Super Admin from being deleted
-UserSchema.pre(["findOneAndDelete", "findOneAndRemove"], async function() {
+UserSchema.pre(["findOneAndDelete", "findOneAndRemove"], async function () {
     const query = this.getQuery();
     const ROOT_EMAIL = process.env.ROOT_SUPER_ADMIN_EMAIL;
     if (!ROOT_EMAIL) return;
@@ -395,7 +422,7 @@ UserSchema.pre(["findOneAndDelete", "findOneAndRemove"], async function() {
 });
 
 // Ensure we don't accidentally leak the password
-UserSchema.methods.toJSON = function() {
+UserSchema.methods.toJSON = function () {
     const obj = this.toObject();
     delete obj.password;
     delete obj.resetPasswordToken;

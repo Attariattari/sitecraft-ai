@@ -141,6 +141,14 @@ export async function GET(req) {
                     primaryPurpose: '',
                     selectedPurposes: [],
                     accountPurpose: '',
+                    preferences: {
+                        theme: "light",
+                        platformTheme: {
+                            mode: "light",
+                            lightThemeId: "",
+                            darkThemeId: "",
+                        },
+                    },
                     googleProfile: {
                         name,
                         email,
