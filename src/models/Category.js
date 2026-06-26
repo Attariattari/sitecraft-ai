@@ -75,7 +75,6 @@ const categorySchema = new mongoose.Schema(
 );
 
 // Search indexes
-categorySchema.index({ slug: 1 });
 categorySchema.index({ isActive: 1, isAvailable: 1 });
 
 const Category =
