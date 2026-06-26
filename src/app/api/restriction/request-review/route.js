@@ -77,7 +77,7 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: "Your review request has been sent to the Super Admin.",
+      message: "Your review request has been sent to the platform review team.",
     });
   } catch (error) {
     console.error("Review request error:", error);

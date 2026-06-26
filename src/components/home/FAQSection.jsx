@@ -27,11 +27,11 @@ const faqs = [
   },
   {
     q: "Can I change themes?",
-    a: "Yes, we provide 20+ professionally curated theme presets. You can switch between them instantly without losing any of your AI-generated content.",
+    a: "Yes. Theme access depends on your plan: Free includes 1 theme, Basic includes 4, and Pro includes 10 as the current active limits.",
   },
   {
     q: "Where will my published website appear?",
-    a: "Your site will be hosted on our secure, lightning-fast edge network. By default, it will live on a free sitecraft.ai subdomain, but you can also connect a custom domain.",
+    a: "Generated websites can be previewed and managed from the platform. Custom domain tools are planned for a future release and are not presented as active access yet.",
   },
   {
     q: "Is it free to start?",

@@ -66,7 +66,7 @@ export async function getThemeUsage(themeId) {
 }
 
 /**
- * Get all themes for Admin
+ * Get complete theme list for Admin
  */
 export async function getAllThemes() {
   await dbConnect();

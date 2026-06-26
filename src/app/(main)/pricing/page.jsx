@@ -6,10 +6,17 @@ import {
   formatLimitValue,
   getPlanComparison,
 } from "@/lib/plans/planEntitlements";
+import { getPublicAvailability } from "@/lib/public/publicAvailability";
+import {
+  getCategoryAccessText,
+  getTemplateAccessText,
+  getThemeAccessText,
+} from "@/lib/public/publicAvailabilityCopy";
 
 export const metadata = {
   title: "Pricing | SiteCraft AI",
-  description: "Compare SiteCraft AI plans for AI websites, themes, templates, custom domains, analytics, and agency workflows.",
+  description:
+    "Compare SiteCraft AI plans with truthful access to current website categories, templates, themes, AI credits, and upcoming platform features.",
 };
 
 const currency = new Intl.NumberFormat("en-US", {
@@ -20,27 +27,25 @@ const currency = new Intl.NumberFormat("en-US", {
 
 const usageRows = [
   { label: "Websites", key: "websites" },
-  { label: "Themes", key: "themes", allLabel: "All" },
+  { label: "Themes", key: "themes", allLabel: "High limit" },
   { label: "AI Credits", key: "aiCreditsPerMonth" },
-  { label: "Custom Domains", key: "customDomains" },
 ];
 
 const recommendations = [
   ["Free", "Best for trying the platform."],
   ["Basic", "Best for personal brands and small businesses."],
-  ["Pro", "Best for serious creators, freelancers, and growing businesses."],
-  ["Agency", "Best for agencies and teams managing multiple client websites."],
+  ["Pro", "Best for professionals who want more websites, more themes, stronger AI usage, and growth-ready tools."],
 ];
 
 const faqs = [
   ["Can I start for free?", "Yes. Free includes one website, one theme, limited templates, and monthly AI credits."],
   ["What happens when I reach my website limit?", "The dashboard can show an upgrade message and the backend blocks new website creation until you upgrade."],
-  ["How many themes are included in each plan?", "Free includes 1 theme, Basic includes 4, Pro includes 10, and Agency includes all available themes."],
+  ["How many themes are included in each plan?", "Free includes 1 theme, Basic includes 4 themes, and Pro includes 10 themes."],
   ["What are AI credits?", "AI credits represent monthly usage for AI-assisted website generation and related AI workflows."],
   ["Can I upgrade later?", "Yes. The subscription model is ready for upgrades when billing is connected."],
   ["Can I downgrade?", "Yes. Downgrades can be handled by the billing provider and reflected in your SiteCraft AI subscription status."],
-  ["Does Agency include all themes?", "Yes. Agency is configured with unlimited theme access."],
-  ["Are custom domains included?", "Basic includes 1 custom domain, Pro includes 5, and Agency includes unlimited custom domains."],
+  ["Will SiteCraft AI support team tools?", "Team collaboration and client workflow tools are planned for future releases. Current active plans are Free, Basic, and Pro."],
+  ["Will SiteCraft AI support custom domains?", "Custom domain tools are planned for future releases and are not presented as active access yet."],
   ["Is payment system already connected?", "Payment integration can be connected based on your billing setup."],
 ];
 
@@ -66,23 +71,38 @@ function CellIcon({ included }) {
   return <XCircle className="mx-auto size-5 text-muted-foreground/60" aria-hidden="true" />;
 }
 
-export default function PricingPage() {
+export default async function PricingPage() {
   const comparison = getPlanComparison();
   const { plans, rows } = comparison;
+  const availability = await getPublicAvailability();
 
   return (
     <main className="min-h-screen bg-background">
       <PublicPageHero
         badge="SiteCraft AI plans"
         title="Choose the Right Plan to Build Websites with AI"
-        description="Start free, then upgrade when you need more websites, more themes, more AI credits, custom domains, analytics, and agency-level tools."
+        description="Start free, then upgrade when you need more websites, more themes, more AI credits, and stronger growth tools."
         primaryLabel="Start Free"
         secondaryHref="#compare"
         secondaryLabel="Compare Plans"
       />
 
       <PublicSection title="Plans for every stage">
-        <div className="grid gap-5 lg:grid-cols-4">
+        <div className="mx-auto mb-8 max-w-4xl rounded-lg border border-primary/20 bg-primary/10 p-5 text-center">
+          <p className="text-sm font-bold leading-6 text-foreground">
+            SiteCraft AI is launching with selected website categories,
+            templates, and features. More categories, templates, and advanced
+            tools are being released step by step.
+          </p>
+          <p className="mt-2 text-xs font-semibold text-muted-foreground">
+            {getCategoryAccessText(availability.activeCategoriesCount)}{" "}
+            Currently available: {availability.activeTemplateCount} active
+            template{availability.activeTemplateCount === 1 ? "" : "s"} and{" "}
+            {availability.activeThemeCount} active theme
+            {availability.activeThemeCount === 1 ? "" : "s"}.
+          </p>
+        </div>
+        <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-3">
           {plans.map((plan) => (
             <article
               key={plan.slug}
@@ -135,7 +155,7 @@ export default function PricingPage() {
                   <div className="flex items-center justify-between border-b border-border pb-2">
                     <span className="text-muted-foreground">Themes</span>
                     <span className="font-black text-foreground">
-                      {formatLimitValue(plan.limits.themes, "All")}
+                      {formatLimitValue(plan.limits.themes, "High limit")}
                     </span>
                   </div>
                   <div className="flex items-center justify-between border-b border-border pb-2">
@@ -144,6 +164,11 @@ export default function PricingPage() {
                       {formatLimitValue(plan.limits.aiCreditsPerMonth)}
                     </span>
                   </div>
+                </div>
+                <div className="mt-5 rounded-lg border border-border bg-background/70 p-3 text-xs font-semibold leading-5 text-muted-foreground">
+                  <p>{getTemplateAccessText(plan, availability.activeTemplateCount)}</p>
+                  <p className="mt-1">{getThemeAccessText(plan, availability.activeThemeCount)}</p>
+                  <p className="mt-1">{getCategoryAccessText(availability.activeCategoriesCount)}</p>
                 </div>
 
                 <ul className="mt-5 space-y-3">
@@ -173,6 +198,9 @@ export default function PricingPage() {
             </article>
           ))}
         </div>
+        <p className="mt-6 text-center text-sm font-semibold text-muted-foreground">
+          Team collaboration and client workflow tools are planned for future releases.
+        </p>
       </PublicSection>
 
       <PublicSection
@@ -229,14 +257,14 @@ export default function PricingPage() {
           {usageRows.map((row) => (
             <div key={row.key} className="rounded-lg border border-border bg-card p-5">
               <h3 className="text-base font-black text-foreground">{row.label}</h3>
-              <div className="mt-4 grid gap-3 sm:grid-cols-4">
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {plans.map((plan) => (
                   <div key={plan.slug} className="rounded-lg bg-muted/50 p-3">
                     <p className="text-xs font-black uppercase text-muted-foreground">
                       {plan.name}
                     </p>
                     <p className="mt-1 text-lg font-black text-foreground">
-                      {formatLimitValue(plan.limits[row.key], row.allLabel || "Unlimited")}
+                      {formatLimitValue(plan.limits[row.key], row.allLabel || "High limit")}
                     </p>
                   </div>
                 ))}
@@ -247,7 +275,7 @@ export default function PricingPage() {
       </PublicSection>
 
       <PublicSection title="Which plan fits best?">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-3">
           {recommendations.map(([name, text]) => (
             <div key={name} className="rounded-lg border border-border bg-card p-5">
               <h3 className="text-lg font-black text-foreground">{name}</h3>

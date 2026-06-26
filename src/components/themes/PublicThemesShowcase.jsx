@@ -36,7 +36,7 @@ const valueCards = [
   {
     icon: BriefcaseBusiness,
     title: "Purpose-Based Design",
-    text: "Themes are matched with website categories like portfolio, business, salon, restaurant, clinic, ecommerce, and agency.",
+    text: "Themes are matched with website categories like portfolio, business, salon, restaurant, clinic, ecommerce, and service brands.",
   },
   {
     icon: ArrowRight,
@@ -60,7 +60,7 @@ const suggestionExamples = [
   ["Salon", "Elegant, soft, visual themes that feel polished and welcoming."],
   ["Clinic", "Clean, calm, trust-focused themes for appointment confidence."],
   ["E-commerce", "Product-forward themes with stronger conversion cues."],
-  ["Agency", "Bold, premium service-focused themes for client trust."],
+  ["Service Brand", "Bold, premium service-focused themes for visitor trust."],
 ];
 
 const categoryMatches = [
@@ -71,7 +71,7 @@ const categoryMatches = [
   ["Restaurant", "Warm visual", "Warm themes help highlight menu, atmosphere, and local brand identity."],
   ["Clinic", "Clean and calm", "Trust-focused themes help visitors feel confident before contacting or booking."],
   ["Real Estate", "Premium property", "Spacious, polished themes make listings and expertise feel higher value."],
-  ["Agency", "Bold service", "High-confidence visual direction helps teams present work and process clearly."],
+  ["Service Brand", "Bold service", "High-confidence visual direction helps teams present work and process clearly."],
   ["School", "Calm educational", "Readable themes support programs, admissions, and learning information."],
   ["Landing Page", "Focused launch", "Sharp themes help campaigns, products, and signup flows convert faster."],
 ];
@@ -92,7 +92,7 @@ const faqs = [
   ],
   [
     "How many themes do I get in each plan?",
-    "Free includes 1 AI-recommended theme, Basic includes 4, Pro includes 10, and Agency includes all available themes.",
+    "Free includes 1 AI-recommended theme, Basic includes 4, and Pro includes 10.",
   ],
   [
     "Does AI choose a theme automatically?",
@@ -132,8 +132,7 @@ function splitTags(theme) {
 function planForIndex(index, planCards) {
   if (index < 1) return planCards[0];
   if (index < 4) return planCards[1];
-  if (index < 10) return planCards[2];
-  return planCards[3];
+  return planCards[2];
 }
 
 function PaletteDots({ colors }) {
@@ -393,7 +392,7 @@ function Section({ eyebrow, title, description, children, soft = false }) {
   );
 }
 
-export function PublicThemesShowcase({ themes, planCards }) {
+export function PublicThemesShowcase({ themes, planCards, activeThemeCount }) {
   const [selectedTheme, setSelectedTheme] = useState(null);
   const selectedIndex = useMemo(
     () => themes.findIndex((theme) => theme.id === selectedTheme?.id),
@@ -417,7 +416,7 @@ export function PublicThemesShowcase({ themes, planCards }) {
               </h1>
               <p className="mt-6 max-w-2xl text-base font-medium leading-relaxed text-muted-foreground md:text-lg">
                 SiteCraft AI gives you professionally designed website themes that
-                help your portfolio, business, salon, restaurant, clinic, agency,
+                help your portfolio, business, salon, restaurant, clinic, service brand,
                 or online store look polished from the first generation.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -486,10 +485,10 @@ export function PublicThemesShowcase({ themes, planCards }) {
       <Section
         eyebrow="Plan-Based Theme Access"
         title="More themes give AI more design directions to suggest"
-        description="The more themes your plan includes, the more design directions AI can suggest for your website."
+        description={`Currently available: ${activeThemeCount} active theme${activeThemeCount === 1 ? "" : "s"}. More themes will be added as they are released.`}
         soft
       >
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3">
           {planCards.map((plan) => (
             <div
               key={plan.key}
@@ -505,7 +504,7 @@ export function PublicThemesShowcase({ themes, planCards }) {
               </div>
               <h3 className="text-2xl font-black text-foreground">{plan.label}</h3>
               <p className="mt-3 flex-1 text-sm font-medium leading-relaxed text-muted-foreground">
-                {plan.description}
+                {plan.accessText || plan.description}
               </p>
               <Link
                 href={plan.href}

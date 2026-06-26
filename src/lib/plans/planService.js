@@ -1,13 +1,22 @@
 import dbConnect from "@/lib/dbConnect";
 import Plan from "@/models/Plan";
-import { DEFAULT_PLANS, serializePublicPlan } from "@/lib/plans/planEntitlements";
+import {
+  DEFAULT_PLANS,
+  getPublicPlans,
+  serializePublicPlan,
+} from "@/lib/plans/planEntitlements";
 
 export async function getActivePlans() {
   await dbConnect();
 
-  const plans = await Plan.find({ isActive: true }).sort({ sortOrder: 1 }).lean();
+  const plans = await Plan.find({
+    isActive: true,
+    isPublic: true,
+    isPurchasable: true,
+    slug: { $in: ["free", "basic", "pro"] },
+  }).sort({ sortOrder: 1 }).lean();
   if (!plans.length) {
-    return DEFAULT_PLANS.map(serializePublicPlan);
+    return getPublicPlans().map(serializePublicPlan);
   }
 
   return plans.map(serializePublicPlan);
@@ -37,9 +46,7 @@ export async function seedDefaultPlans() {
   for (const plan of DEFAULT_PLANS) {
     const updated = await Plan.findOneAndUpdate(
       { slug: plan.slug },
-      {
-        $setOnInsert: plan,
-      },
+      { $set: plan },
       { upsert: true, new: true },
     ).lean();
 

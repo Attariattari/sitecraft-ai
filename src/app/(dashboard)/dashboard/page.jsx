@@ -118,7 +118,7 @@ export default function DashboardPage() {
       completed: publishedSites > 0,
     },
     {
-      title: "Connect custom domain",
+      title: "Review publishing roadmap",
       link: "/dashboard/domains",
       completed: false,
     },

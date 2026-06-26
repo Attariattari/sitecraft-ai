@@ -10,7 +10,7 @@ import { getPlanLimits, getUserPlanSlug } from "@/lib/plans/planEntitlements";
  */
 export function getThemeLimitByPlan(plan) {
   const limit = getPlanLimits(plan).themes;
-  return limit === -1 ? Infinity : limit || 1;
+  return limit || 1;
 }
 
 /**
@@ -21,8 +21,6 @@ export function applyThemePlanLimit(themes, plan) {
   if (!Array.isArray(themes)) return [];
   
   const limit = getThemeLimitByPlan(plan);
-  if (limit === Infinity) return themes;
-  
   return themes.slice(0, limit);
 }
 
@@ -44,8 +42,6 @@ export function canUserAccessTheme(user, themeId, recommendedThemeIds = []) {
   const plan = getUserPlanSlug(user);
   const limit = getThemeLimitByPlan(plan);
   
-  if (limit === Infinity) return true;
-  
   // Check if theme is in recommended list and within limit
   const themeIndex = recommendedThemeIds.indexOf(themeId);
   if (themeIndex === -1) return false; // Not in recommended list
@@ -63,8 +59,7 @@ export function formatThemeLimitForDisplay(plan) {
     free: "1 AI-recommended theme",
     basic: "4 AI-recommended themes",
     pro: "10 AI-recommended themes",
-    agency: "all available themes",
   };
   
-  return displays[plan] || displays.free;
+  return displays[plan] || `${limit} AI-recommended themes`;
 }

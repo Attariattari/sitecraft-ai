@@ -50,7 +50,7 @@ export function AIPreviewSection() {
                   <Layout className="size-4" /> Template Selection
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {["Portfolio", "SaaS", "Agency", "Startup"].map((chip, i) => (
+                  {["Portfolio", "SaaS", "Service", "Startup"].map((chip, i) => (
                     <div
                       key={i}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors cursor-pointer ${i === 0 ? "border-primary bg-primary-soft text-primary" : "border-border/60 text-muted-foreground hover:bg-secondary"}`}

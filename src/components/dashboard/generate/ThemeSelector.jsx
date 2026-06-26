@@ -150,7 +150,7 @@ export function ThemeSelector({
           onClick={() => setShowAll(true)}
           className="w-full sm:w-auto h-11 rounded-xl text-sm font-bold gap-2"
         >
-          View all themes <ChevronDown className="w-4 h-4" />
+            View more themes <ChevronDown className="w-4 h-4" />
         </Button>
       )}
     </div>

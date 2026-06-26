@@ -2,6 +2,7 @@ import { PublicThemesShowcase } from "@/components/themes/PublicThemesShowcase";
 import { getAvailableThemes } from "@/lib/themes/themeService";
 import { WEBSITE_THEMES } from "@/lib/themes/presets";
 import { formatThemeLimitForDisplay } from "@/lib/themes/themePlanLimits";
+import { getThemeAccessText } from "@/lib/public/publicAvailabilityCopy";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -38,13 +39,6 @@ const planDefinitions = [
     label: "Pro Plan",
     description: "More professional variety for creators, freelancers, and growing businesses.",
     cta: "Upgrade to Pro",
-    href: "/pricing",
-  },
-  {
-    key: "agency",
-    label: "Agency Plan",
-    description: "Best for agencies, client work, and multiple projects that need visual variety.",
-    cta: "Choose Agency",
     href: "/pricing",
   },
 ];
@@ -105,7 +99,17 @@ export default async function ThemesPage() {
   const planCards = planDefinitions.map((plan) => ({
     ...plan,
     limitLabel: formatThemeLimitForDisplay(plan.key),
+    accessText: getThemeAccessText(
+      { slug: plan.key, limits: { themes: Number.parseInt(formatThemeLimitForDisplay(plan.key), 10) || 1 } },
+      themes.length,
+    ),
   }));
 
-  return <PublicThemesShowcase themes={themes} planCards={planCards} />;
+  return (
+    <PublicThemesShowcase
+      themes={themes}
+      planCards={planCards}
+      activeThemeCount={themes.length}
+    />
+  );
 }

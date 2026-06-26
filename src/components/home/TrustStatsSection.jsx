@@ -5,7 +5,7 @@ import { Sparkles, Palette, Zap, LayoutTemplate, Orbit } from "lucide-react";
 
 const stats = [
   { value: "AI-Powered", label: "Generation", icon: Sparkles },
-  { value: "20+", label: "Theme Presets", icon: Palette },
+  { value: "Plan-Based", label: "Theme Access", icon: Palette },
   { value: "Ready", label: "Portfolio MVP", icon: LayoutTemplate },
   { value: "SEO", label: "Friendly Output", icon: Orbit },
   { value: "Live", label: "Preview Flow", icon: Zap },

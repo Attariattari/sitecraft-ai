@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAllThemes } from "@/lib/themes/themeService";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import {
+  getAllFeatures,
+  seedDefaultFeatures,
+} from "@/lib/features/featureCatalogService";
 
-/**
- * Admin API - list theme records (includes usageCount)
- * Access: admin / super-admin
- */
-export async function GET(req) {
+export async function POST() {
   try {
     const user = await getCurrentUser();
 
@@ -17,21 +16,23 @@ export async function GET(req) {
       );
     }
 
-    if (user.role !== "super-admin" && user.role !== "admin") {
+    if (user.role !== "super-admin") {
       return NextResponse.json(
-        { success: false, message: "Forbidden" },
+        { success: false, message: "Forbidden: Super Admin only" },
         { status: 403 },
       );
     }
 
-    const themes = await getAllThemes();
+    const result = await seedDefaultFeatures();
+    const features = await getAllFeatures();
 
     return NextResponse.json({
       success: true,
-      themes,
+      message: result.message,
+      features,
     });
   } catch (error) {
-    console.error("Admin API get theme records error:", error);
+    console.error("Admin features seed error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
       { status: 500 },

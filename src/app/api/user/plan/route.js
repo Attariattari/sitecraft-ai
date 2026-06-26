@@ -24,8 +24,9 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       plan: serializePublicPlan(getPlanBySlug(planSlug)),
-      subscription: user.subscription || {
-        status: planSlug === "free" ? "free" : "active",
+      subscription: {
+        ...(user.subscription || {}),
+        status: planSlug === "free" ? "free" : user.subscription?.status || "active",
         planSlug,
       },
       usage: user.usage || {},

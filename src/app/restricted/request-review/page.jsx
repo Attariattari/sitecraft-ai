@@ -61,7 +61,7 @@ function ReviewForm() {
           Request Sent
         </h1>
         <p className="text-muted-foreground mb-8">
-          Your review request has been sent to the Super Admin. You will receive
+          Your review request has been sent to the platform review team. You will receive
           an email once we have reviewed your account.
         </p>
         <Link

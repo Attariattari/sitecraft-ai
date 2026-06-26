@@ -23,14 +23,14 @@ export default function AdminPlansPage() {
         <AdminStatCard
           icon={CreditCard}
           label="Active Plans"
-          value={String(DEFAULT_PLANS.length)}
-          sub="Free, Basic, Pro, Agency"
+          value="3"
+          sub="Free, Basic, Pro"
         />
         <AdminStatCard
           icon={Database}
           label="Plan Source"
           value="Seeded"
-          sub="/api/admin/plans/seed"
+          sub="Agency is future/disabled"
         />
         <AdminStatCard
           icon={Star}
@@ -59,7 +59,7 @@ export default function AdminPlansPage() {
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-base font-black text-foreground">{plan.name}</h3>
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-black uppercase text-primary">
-                {plan.badge}
+                {plan.status === "future" ? "Future" : plan.badge}
               </span>
             </div>
 
@@ -80,7 +80,7 @@ export default function AdminPlansPage() {
               <div className="flex justify-between border-b border-border pb-2">
                 <span className="text-muted-foreground">Themes</span>
                 <span className="font-black text-foreground">
-                  {formatLimitValue(plan.limits.themes, "All")}
+                  {formatLimitValue(plan.limits.themes, "High limit")}
                 </span>
               </div>
               <div className="flex justify-between border-b border-border pb-2">
@@ -104,7 +104,7 @@ export default function AdminPlansPage() {
             </ul>
 
             <button className="mt-5 w-full rounded-lg border border-border px-4 py-2 text-xs font-bold transition-all hover:bg-muted">
-              Edit Plan
+              {plan.status === "future" ? "Future / Disabled" : "Edit Plan"}
             </button>
           </div>
         ))}

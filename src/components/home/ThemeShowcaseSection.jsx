@@ -136,7 +136,7 @@ export function ThemeShowcaseSection() {
 
   const fetchThemes = async () => {
     try {
-      const res = await fetch("/api/themes/available?context=showcase");
+      const res = await fetch("/api/themes/available?context=showcase&public=true&limit=6");
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
 
@@ -164,7 +164,12 @@ export function ThemeShowcaseSection() {
             description: t.description || preset?.description || "",
           };
         });
-        setThemes(mapped);
+        const seen = new Set(mapped.map((theme) => theme.themeId || theme.slug));
+        const completed = [
+          ...mapped,
+          ...LOCAL_FALLBACK.filter((theme) => !seen.has(theme.themeId)),
+        ].slice(0, 6);
+        setThemes(completed);
       } else {
         // DB is empty → use local fallback
         setThemes(LOCAL_FALLBACK);

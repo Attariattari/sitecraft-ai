@@ -264,6 +264,13 @@ export function AdminTopbar() {
 function NotificationDropdown() {
   const { notifications, unreadCount, markAllRead } = useRealtime();
   const [open, setOpen] = useState(false);
+  const uniqueNotifications = notifications.filter((notification, index, list) => {
+    const key = notification?._id || `${notification?.title || "notification"}-${notification?.createdAt || index}`;
+    return list.findIndex((item, itemIndex) => {
+      const itemKey = item?._id || `${item?.title || "notification"}-${item?.createdAt || itemIndex}`;
+      return itemKey === key;
+    }) === index;
+  });
 
   return (
     <div className="relative">
@@ -307,7 +314,7 @@ function NotificationDropdown() {
               </div>
 
               <div className="overflow-y-auto py-1 custom-scrollbar">
-                {notifications.length === 0 ? (
+                {uniqueNotifications.length === 0 ? (
                   <div className="p-10 text-center">
                     <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 text-muted-foreground/50">
                       <Bell className="w-6 h-6" />
@@ -317,9 +324,9 @@ function NotificationDropdown() {
                     </p>
                   </div>
                 ) : (
-                  notifications.map((n) => (
+                  uniqueNotifications.map((n, index) => (
                     <div
-                      key={n._id}
+                      key={`${n._id || "notification"}-${n.createdAt || index}`}
                       className={cn(
                         "p-3.5 border-b border-border/50 hover:bg-muted/30 transition-colors last:border-0",
                         !n.read && "bg-primary/5 border-l-2 border-l-primary",

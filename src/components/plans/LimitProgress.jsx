@@ -6,8 +6,8 @@ export function LimitProgress({
   limit = 0,
   helper,
 }) {
-  const unlimited = limit === -1;
-  const percent = unlimited || !limit ? 0 : Math.min(100, Math.round((used / limit) * 100));
+  const openEnded = limit === -1;
+  const percent = openEnded || !limit ? 0 : Math.min(100, Math.round((used / limit) * 100));
 
   return (
     <div className="space-y-2">
@@ -20,7 +20,7 @@ export function LimitProgress({
       <div className="h-2 overflow-hidden rounded-full bg-muted">
         <div
           className="h-full rounded-full bg-primary transition-[width]"
-          style={{ width: unlimited ? "100%" : `${percent}%` }}
+          style={{ width: openEnded ? "100%" : `${percent}%` }}
         />
       </div>
       {helper ? <p className="text-xs text-muted-foreground">{helper}</p> : null}

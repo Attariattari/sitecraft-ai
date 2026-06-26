@@ -65,7 +65,7 @@ export default function AdminTemplatesPage() {
           icon={LayoutTemplate}
           label="Total Templates"
           value={mockTemplates.length.toString()}
-          sub="All templates"
+            sub="Template library"
         />
         <AdminStatCard
           icon={LayoutTemplate}

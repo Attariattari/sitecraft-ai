@@ -12,10 +12,15 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const context = searchParams.get("context") || "generate";
+    const isPublicShowcase = searchParams.get("public") === "true";
+    const requestedLimit = Number.parseInt(searchParams.get("limit") || "", 10);
 
     const user = await getCurrentUser();
     const planSlug = getUserPlanSlug(user || { plan: "free" });
-    const themes = applyThemePlanLimit(await getAvailableThemes(context), planSlug);
+    const availableThemes = await getAvailableThemes(context);
+    const themes = isPublicShowcase
+      ? availableThemes.slice(0, Number.isFinite(requestedLimit) ? requestedLimit : 6)
+      : applyThemePlanLimit(availableThemes, planSlug);
 
     return NextResponse.json({
       success: true,

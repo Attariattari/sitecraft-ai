@@ -45,7 +45,7 @@ export default function ContactPage() {
           <div className="grid gap-5">
             <ThemeCard icon={Mail} title="Product questions" description="Ask about templates, themes, pricing, or the generation workflow." />
             <ThemeCard icon={LifeBuoy} title="Support" description="Need help with your account or website flow? Send details and we will guide you." />
-            <ThemeCard icon={MessageSquare} title="Business inquiries" description="For partnerships, agency workflows, or platform questions, contact the team." />
+            <ThemeCard icon={MessageSquare} title="Business inquiries" description="For partnerships, future team workflows, or platform questions, contact the team." />
           </div>
         </div>
       </PublicSection>

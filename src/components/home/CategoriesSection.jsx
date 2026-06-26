@@ -122,12 +122,12 @@ export function CategoriesSection() {
           <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tight mb-6">
             One AI Model. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-              Multiple Industries.
+              Selected Categories.
             </span>
           </h2>
           <p className="text-lg text-muted-foreground font-medium leading-relaxed">
-            We&apos;ve specialized our AI to understand industry-specific nuances,
-            delivering high-converting websites for every sector.
+            SiteCraft AI is launching with selected website categories first.
+            More categories are being released step by step.
           </p>
         </motion.div>
 
@@ -169,7 +169,7 @@ export function CategoriesSection() {
                           Live Now
                         </p>
                         <p className="text-[10px] font-bold text-primary italic">
-                          60s Generation
+                          Available Now
                         </p>
                       </div>
                     </div>

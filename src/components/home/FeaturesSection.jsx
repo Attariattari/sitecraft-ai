@@ -17,23 +17,23 @@ const features = [
     icon: BrainCircuit,
     title: "AI Content Generation",
     description:
-      "Describe your business in plain English. Our AI writes compelling copy, headlines, and CTAs tailored to your niche — automatically.",
+      "Describe your business in plain English. SiteCraft AI helps create starter copy, headlines, and CTAs tailored to your niche.",
     tone: "primary",
     wide: true,
   },
   {
     icon: Palette,
-    title: "20+ Premium Themes",
+    title: "Plan-Based Themes",
     description:
-      "Choose from 20 professionally curated themes, each with light and dark modes.",
+      "Choose from the themes currently active in the platform, with more design options released over time.",
     tone: "accent",
     wide: false,
   },
   {
     icon: Wand2,
-    title: "One-Click Publish",
+    title: "Guided Publishing",
     description:
-      "From idea to live website in under 2 minutes. Hosting, domain, and SSL — all handled.",
+      "Move from idea to a preview-ready website foundation with fewer manual setup steps.",
     tone: "primary",
     wide: false,
   },
@@ -41,7 +41,7 @@ const features = [
     icon: Smartphone,
     title: "Fully Responsive",
     description:
-      "Every site is pixel-perfect on mobile, tablet, and desktop — no extra effort required.",
+      "Generated layouts are designed to adapt cleanly across mobile, tablet, and desktop screens.",
     tone: "accent",
     wide: true,
   },
@@ -57,23 +57,23 @@ const features = [
     icon: Zap,
     title: "Blazing Fast",
     description:
-      "Static-first architecture delivers sub-second load times and top Core Web Vitals scores.",
+      "A modern web foundation helps generated pages stay lightweight, responsive, and easier to optimize.",
     tone: "accent",
     wide: false,
   },
   {
     icon: Globe,
-    title: "Custom Domains",
+    title: "Publishing Roadmap",
     description:
-      "Connect your own domain or use a free sitecraft.ai subdomain. Propagation in minutes.",
+      "Publishing workflows are being expanded step by step, with custom domain tools planned for future releases.",
     tone: "primary",
     wide: false,
   },
   {
     icon: ShieldCheck,
-    title: "Enterprise Security",
+    title: "Protected Access",
     description:
-      "SSL by default, data encryption at rest, SOC 2 compliant infrastructure, and automated backups.",
+      "Authentication, role-aware access, and protected dashboard routes help keep platform workflows separated.",
     tone: "accent",
     wide: true,
   },
@@ -122,7 +122,7 @@ export function FeaturesSection() {
             <span className="site-gradient-text">nothing you don&apos;t</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium">
-            SiteCraft AI bundles an entire web agency into one platform.
+            SiteCraft AI bundles AI generation, templates, themes, and website management into one platform.
             Powerful for pros, effortless for beginners.
           </p>
         </motion.div>

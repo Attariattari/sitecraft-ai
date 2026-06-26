@@ -33,7 +33,7 @@ function notifyPlatformThemeUpdated() {
 
 /**
  * Professional Theme Selection Page
- * Displays all themes as cards in a grid, with modal preview on click
+ * Displays theme cards in a grid, with modal preview on click
  */
 
 export default function PlatformThemePage() {
@@ -69,7 +69,7 @@ export default function PlatformThemePage() {
         }
       }
 
-      // Load all available themes
+      // Load available theme records
       const themesRes = await fetch("/api/admin/themes");
       if (themesRes.ok) {
         const themesData = await themesRes.json();

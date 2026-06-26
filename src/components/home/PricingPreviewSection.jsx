@@ -3,9 +3,9 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { DEFAULT_PLANS, formatLimitValue } from "@/lib/plans/planEntitlements";
+import { formatLimitValue, getPublicPlans } from "@/lib/plans/planEntitlements";
 
-const plans = DEFAULT_PLANS;
+const plans = getPublicPlans();
 
 export function PricingPreviewSection() {
   return (
@@ -28,7 +28,7 @@ export function PricingPreviewSection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 max-w-7xl mx-auto items-stretch">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3 max-w-6xl mx-auto items-stretch">
           {plans.map((plan, i) => (
             <motion.div
               key={plan.slug}
@@ -85,7 +85,7 @@ export function PricingPreviewSection() {
                 <div className="flex justify-between border-b border-border pb-2">
                   <span className="text-muted-foreground">Themes</span>
                   <span className="font-black text-foreground">
-                    {formatLimitValue(plan.limits.themes, "All")}
+                    {formatLimitValue(plan.limits.themes, "High limit")}
                   </span>
                 </div>
               </div>

@@ -139,10 +139,9 @@ export default function ThemesPage() {
     free: 1,
     basic: 4,
     pro: 10,
-    agency: Infinity,
-  }[userPlan] || 1;
+  }[userPlan] || 10;
 
-  const needsUpgrade = userPlan !== "agency" && themes.length > planLimit;
+  const needsUpgrade = themes.length > planLimit;
   const isLimitedPlan = userPlan === "free" || userPlan === "basic" || userPlan === "pro";
 
   return (
@@ -256,7 +255,7 @@ export default function ThemesPage() {
                       Unlock More Themes
                     </h3>
                     <p className="text-sm text-yellow-800">
-                      Your plan includes {planLimit} theme{planLimit !== 1 ? "s" : ""}. We found {themes.length} great options for you. Upgrade to access all of them.
+                      Your plan includes {planLimit} theme{planLimit !== 1 ? "s" : ""}. We found {themes.length} strong options for you. Upgrade for more theme access.
                     </p>
                   </div>
                   <Button asChild size="sm">

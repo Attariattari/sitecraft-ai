@@ -5,7 +5,7 @@ import {
   DashboardPageHeader,
 } from "@/components/dashboard/DashboardShell";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
-import { DEFAULT_PLANS, formatLimitValue } from "@/lib/plans/planEntitlements";
+import { formatLimitValue, getPublicPlans } from "@/lib/plans/planEntitlements";
 
 export const metadata = {
   title: "Plans | SiteCraft Dashboard",
@@ -19,8 +19,8 @@ export default function PlansPage() {
         description="Compare plan limits and choose the right access level for your websites."
       />
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-4">
-        {DEFAULT_PLANS.map((plan) => (
+      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        {getPublicPlans().map((plan) => (
           <DashboardCard
             key={plan.slug}
             className={`flex min-h-[430px] flex-col ${
@@ -53,7 +53,7 @@ export default function PlansPage() {
               <div className="flex justify-between border-b border-border pb-2">
                 <span className="text-muted-foreground">Themes</span>
                 <span className="font-black text-foreground">
-                  {formatLimitValue(plan.limits.themes, "All")}
+                  {formatLimitValue(plan.limits.themes, "High limit")}
                 </span>
               </div>
               <div className="flex justify-between border-b border-border pb-2">

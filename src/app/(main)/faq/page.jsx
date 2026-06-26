@@ -10,10 +10,10 @@ export const metadata = {
 const faqs = [
   ["General", "What is SiteCraft AI?", "SiteCraft AI helps users generate website structure, copy, template direction, and theme-aware pages from a guided workflow."],
   ["AI Website Generation", "Can I edit AI-generated content?", "Yes. The generated site is a starting point that you can review, adjust, and refine before publishing."],
-  ["Templates", "Are templates responsive?", "Templates are designed around responsive sections that work across mobile, tablet, and desktop sizes."],
+  ["Templates", "How many templates are available?", "The public template page shows the current active template count. More templates are being released step by step."],
   ["Themes", "Do public pages use the selected platform theme?", "Yes. Public marketing pages use platform theme variables such as primary, accent, background, foreground, card, border, and muted colors."],
   ["Dashboard", "Can I manage sites from the dashboard?", "The dashboard is the workspace for generated sites, account settings, media, and related management flows."],
-  ["Pricing", "Is it free to start?", "The MVP includes a free entry point. Paid plan details are shown as public placeholders until billing is enabled."],
+  ["Pricing", "Is it free to start?", "Yes. Current active public plans are Free, Basic, and Pro, with plan limits shown on the pricing page."],
   ["Security", "Is access protected?", "Protected areas use authentication and role-aware access. We avoid claiming certifications that are not implemented."],
   ["Account", "Can I use Google OAuth?", "Where enabled, users can sign in with supported authentication methods such as email and Google OAuth."],
 ];

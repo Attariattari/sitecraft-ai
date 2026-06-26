@@ -73,7 +73,7 @@ const capabilities = [
   { icon: Palette, title: "Dynamic Theme Engine", description: "Themes define visual style while staying token-driven." },
   { icon: LayoutDashboard, title: "User Dashboard", description: "A workspace for sites, account settings, generation, and previews." },
   { icon: Search, title: "SEO-Friendly Structure", description: "Readable headings, metadata, and organized page sections." },
-  { icon: ShieldCheck, title: "Super Admin Controls", description: "Central controls keep platform settings and access organized." },
+  { icon: ShieldCheck, title: "Protected Platform Operations", description: "Sensitive platform settings and access controls stay separate from user workflows." },
 ];
 
 const tech = [
@@ -82,23 +82,23 @@ const tech = [
   ["Tailwind CSS", "Token-based styling tied to the platform theme variables."],
   ["MongoDB", "Flexible storage for users, sites, themes, and platform settings."],
   ["Cloudinary", "Media upload support for website visuals and profile assets."],
-  ["Secure APIs", "Server-side routes for auth, generation, themes, and admin flows."],
+  ["Secure APIs", "Server-side routes for auth, generation, themes, and protected product workflows."],
 ];
 
 const trustItems = [
   { icon: MailCheck, title: "Email verification", description: "Account flows include verification steps where needed." },
   { icon: KeyRound, title: "Google OAuth", description: "Users can authenticate through supported Google sign-in flows." },
   { icon: Lock, title: "Protected dashboard", description: "Dashboard routes are designed around authenticated access." },
-  { icon: ShieldCheck, title: "Role-aware admin", description: "Admin and Super Admin controls are separated from user workflows." },
+  { icon: ShieldCheck, title: "Clear access boundaries", description: "Sensitive operational controls are separated from regular user workflows." },
 ];
 
 const roadmap = [
   "More website categories",
   "More templates and theme presets",
   "Improved AI content quality",
-  "Custom domain support",
-  "Website analytics",
-  "Team and agency tools",
+  "Planned custom domain support",
+  "Planned website analytics",
+  "Future team and client tools",
 ];
 
 const values = [
@@ -218,7 +218,7 @@ export default function AboutPage() {
       <PublicSection
         eyebrow="Product introduction"
         title="A purpose-based website builder for real workflows"
-        description="SiteCraft AI combines AI generation, templates, themes, dashboard management, and Super Admin controlled platform settings into one scalable website creation flow."
+        description="SiteCraft AI combines AI generation, templates, themes, dashboard management, and protected platform settings into one scalable website creation flow."
       >
         <div className="grid gap-5 md:grid-cols-3">
           <ThemeCard icon={BrainCircuit} title="AI-assisted creation" description="The platform helps users turn intent, purpose, and profile details into structured website foundations." />
@@ -325,9 +325,9 @@ export default function AboutPage() {
       <SplitStorySection
         eyebrow="Themes and templates"
         title="Structure and style stay separate for scalability"
-        description="Templates define layout structure. Website themes define generated-site style. The platform theme controls the main public website and dashboard look. Keeping these systems separate helps the product grow without visual confusion."
+        description="Templates define layout structure. Website themes define generated-site style. The main product interface follows a protected platform theme system. Keeping these systems separate helps the product grow without visual confusion."
         icon={Layers}
-        items={["Templates define structure", "Website themes define generated sites", "Platform theme controls main UI", "Admin settings stay centralized"]}
+        items={["Templates define structure", "Website themes define generated sites", "Platform theme controls main UI", "Sensitive settings stay protected"]}
       />
 
       <PublicSection eyebrow="Security and trust" title="Trust starts with clear platform boundaries">

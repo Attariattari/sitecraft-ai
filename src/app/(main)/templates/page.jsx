@@ -1,42 +1,77 @@
-import { BriefcaseBusiness, Building2, GraduationCap, HeartPulse, Home, Landmark, ShoppingBag, Store, Utensils, Wand2 } from "lucide-react";
+import { LayoutTemplate } from "lucide-react";
 import { PublicPageHero } from "@/components/public/PublicPageHero";
 import { PublicCTA, PublicSection, ThemeCard } from "@/components/public/PublicCards";
+import { getPublicAvailability } from "@/lib/public/publicAvailability";
+import { getTemplateAccessText } from "@/lib/public/publicAvailabilityCopy";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata = {
   title: "Templates | SiteCraft AI",
-  description: "Explore professional SiteCraft AI template categories for portfolios, businesses, clinics, restaurants, e-commerce, agencies, and more.",
+  description:
+    "Explore currently active SiteCraft AI templates and upcoming template categories without inflated template counts.",
 };
 
-const templates = [
-  { icon: BriefcaseBusiness, title: "Portfolio", description: "For students, developers, designers, freelancers, and personal brands.", items: ["Projects", "Skills", "Contact"] },
-  { icon: Building2, title: "Business", description: "A professional structure for services, local businesses, and company websites.", items: ["Services", "Testimonials", "Lead CTA"] },
-  { icon: Store, title: "Salon", description: "Elegant pages for salons, beauty studios, stylists, and appointment-first brands.", items: ["Packages", "Gallery", "Booking CTA"] },
-  { icon: ShoppingBag, title: "E-commerce", description: "A storefront-ready visual direction for products, collections, and offers.", items: ["Products", "Benefits", "Checkout CTA"] },
-  { icon: Utensils, title: "Restaurant", description: "Show menu highlights, story, timings, location, and customer trust.", items: ["Menu", "Location", "Reservations"] },
-  { icon: HeartPulse, title: "Clinic", description: "Clean, trustworthy layouts for clinics, healthcare practices, and wellness services.", items: ["Services", "Doctors", "Appointments"] },
-  { icon: Home, title: "Real Estate", description: "Show listings, agents, neighborhoods, and lead capture in a premium format.", items: ["Listings", "Agents", "Inquiry CTA"] },
-  { icon: Landmark, title: "Agency", description: "Position your team, services, process, case studies, and conversion offers.", items: ["Case studies", "Services", "Proposal CTA"] },
-  { icon: GraduationCap, title: "School", description: "Organize admissions, programs, campus highlights, and parent communication.", items: ["Programs", "Admissions", "Events"] },
-  { icon: Wand2, title: "Landing Page", description: "A focused page for campaigns, products, launches, and signups.", items: ["Hero", "Benefits", "Conversion CTA"] },
-];
+export default async function TemplatesPage() {
+  const availability = await getPublicAvailability();
+  const proPlan = availability.publicPlans.find((plan) => plan.slug === "pro");
 
-export default function TemplatesPage() {
   return (
     <main className="min-h-screen bg-background">
       <PublicPageHero
         badge="Template library"
         title="Launch faster with"
-        highlight="smart templates."
-        description="Choose a category, let AI structure the page, and apply the active platform theme without hard-coded colors."
+        highlight="active templates."
+        description="Explore the templates currently available in SiteCraft AI. More templates and categories are being released step by step."
       />
-      <PublicSection title="Template categories" description="Each template card is theme-aware and designed to remain readable in light or dark mode.">
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-5">
-          {templates.map((template) => (
-            <ThemeCard key={template.title} {...template} cta="Use this template" />
+
+      <PublicSection
+        eyebrow="Available Now"
+        title={`${availability.activeTemplateCount} active template${availability.activeTemplateCount === 1 ? "" : "s"}`}
+        description={getTemplateAccessText(proPlan, availability.activeTemplateCount)}
+      >
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {availability.activeTemplates.map((template) => (
+            <ThemeCard
+              key={template.slug}
+              icon={LayoutTemplate}
+              title={template.name}
+              description={template.description || "Active template available for the current generation flow."}
+              items={[
+                `Category: ${template.category}`,
+                template.isPremium ? "Premium template" : "Starter template",
+                "Status: Active",
+              ]}
+              cta="Use this template"
+              href="/generate"
+            />
           ))}
         </div>
       </PublicSection>
-      <PublicCTA title="Pick a template, then let AI do the heavy lifting." />
+
+      {availability.comingSoonCategories.length ? (
+        <PublicSection
+          eyebrow="Coming Soon"
+          title="More template categories are planned"
+          description="These categories are visible as roadmap items and are not presented as usable until they become available."
+          className="border-y border-border/50"
+        >
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {availability.comingSoonCategories.map((category) => (
+              <div key={category.slug} className="rounded-lg border border-border bg-card p-5 shadow-sm">
+                <span className="rounded-full border border-border bg-background px-2.5 py-1 text-[10px] font-black text-muted-foreground">
+                  Coming Soon
+                </span>
+                <h2 className="mt-4 text-lg font-black text-foreground">{category.label}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{category.description}</p>
+              </div>
+            ))}
+          </div>
+        </PublicSection>
+      ) : null}
+
+      <PublicCTA title="Pick an active template, then let AI do the heavy lifting." />
     </main>
   );
 }

@@ -51,6 +51,31 @@ const PlanSchema = new mongoose.Schema(
       default: true,
       index: true,
     },
+    isPublic: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    isPurchasable: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    status: {
+      type: String,
+      enum: ["active", "future", "disabled"],
+      default: "active",
+      index: true,
+    },
+    comingSoon: {
+      type: Boolean,
+      default: false,
+    },
+    ctaType: {
+      type: String,
+      enum: ["signup", "checkout", "none"],
+      default: "checkout",
+    },
     sortOrder: {
       type: Number,
       default: 0,
@@ -84,7 +109,7 @@ const PlanSchema = new mongoose.Schema(
   },
 );
 
-PlanSchema.index({ isActive: 1, sortOrder: 1 });
+PlanSchema.index({ isActive: 1, isPublic: 1, isPurchasable: 1, sortOrder: 1 });
 
 const Plan = mongoose.models.Plan || mongoose.model("Plan", PlanSchema);
 

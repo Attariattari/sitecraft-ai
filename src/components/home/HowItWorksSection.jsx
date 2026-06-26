@@ -22,14 +22,14 @@ const steps = [
     number: "3",
     title: "Preview Template + Theme",
     description:
-      "See the result instantly. Switch between 20+ premium themes and adjust colors visually.",
+      "Preview the generated result, compare the themes available in your plan, and adjust the visual direction.",
     icon: MonitorPlay,
   },
   {
     number: "4",
     title: "Publish Your Website",
     description:
-      "One click to launch your site to a public URL with full SEO and mobile optimization.",
+      "Prepare your site for a public web presence with SEO-friendly structure and responsive output.",
     icon: Globe2,
   },
 ];
@@ -53,8 +53,8 @@ export function HowItWorksSection() {
             <span className="text-primary">never been easier</span>
           </h2>
           <p className="text-lg text-muted-foreground font-medium">
-            A smooth, optimized process that turns your idea into a live digital
-            presence in just four simple steps.
+            A smooth, guided process that turns your idea into a structured
+            website foundation in four simple steps.
           </p>
         </motion.div>
 

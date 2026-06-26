@@ -76,14 +76,15 @@ export const defaultFeatureFlags = [
   },
   {
     key: "super_admin_controls",
-    name: "Super Admin Controls",
+    name: "Protected Platform Operations",
     description:
-      "Manage users, categories, themes, plans, access, and platform settings.",
+      "Keep sensitive platform settings and access workflows protected.",
     status: "Available Now",
     enabled: true,
     audience: "Admin",
-    usedBy: "Super Admin",
+    usedBy: "Platform Team",
     benefit: "Operational control",
+    isPublic: false,
     sortOrder: 7,
   },
   {
@@ -123,25 +124,27 @@ export const defaultFeatureFlags = [
   },
   {
     key: "category_management",
-    name: "Category Management",
-    description: "Control category availability, locks, and public visibility.",
+    name: "Protected Category Operations",
+    description: "Keep category availability and public visibility professionally controlled.",
     status: "Available Now",
     enabled: true,
     audience: "Admin",
-    usedBy: "Super Admin",
+    usedBy: "Platform Team",
     benefit: "Controlled purpose availability",
+    isPublic: false,
     sortOrder: 11,
   },
   {
     key: "platform_theme_control",
-    name: "Platform Theme Control",
+    name: "Protected Platform Theme System",
     description:
-      "Control the main public website and dashboard platform theme from admin.",
+      "Keep the main public website and dashboard aligned with protected theme settings.",
     status: "Available Now",
     enabled: true,
     audience: "Admin",
-    usedBy: "Super Admin",
+    usedBy: "Platform Team",
     benefit: "Consistent brand UI",
+    isPublic: false,
     sortOrder: 12,
   },
   {
@@ -419,13 +422,13 @@ export async function getAllFeatureFlags() {
 export async function getPublicFeatureFlags() {
   await dbConnect();
 
-  let flags = await FeatureFlag.find({ isPublic: true })
+  let flags = await FeatureFlag.find({ isPublic: true, audience: { $ne: "Admin" } })
     .sort({ sortOrder: 1, name: 1 })
     .lean();
 
   if (!flags || flags.length === 0) {
     await seedFeatureFlags();
-    flags = await FeatureFlag.find({ isPublic: true })
+    flags = await FeatureFlag.find({ isPublic: true, audience: { $ne: "Admin" } })
       .sort({ sortOrder: 1, name: 1 })
       .lean();
   }

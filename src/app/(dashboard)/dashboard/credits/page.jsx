@@ -118,15 +118,15 @@ export default function DashboardCreditsPage() {
             <h3 className="text-base font-bold mb-2">Need more credits?</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Upgrade to a premium plan to unlock more AI generation credits,
-              custom domains, and advanced features.
+              higher plan limits, and stronger dashboard tools.
             </p>
 
             <ul className="space-y-3 mb-6">
               {[
-                "Up to 50 AI generations/mo",
+                "More monthly AI credits",
                 "Priority AI processing",
-                "Advanced theme editor",
-                "Custom domain support",
+                "More theme access",
+                "Higher website capacity",
               ].map((feature, i) => (
                 <li
                   key={i}

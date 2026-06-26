@@ -91,7 +91,7 @@ export function getTemplate(key) {
 }
 
 /**
- * Get all templates
+ * Get complete template list
  */
 export function getAllTemplates() {
   return Object.values(TEMPLATE_REGISTRY).sort((a, b) => a.order - b.order);

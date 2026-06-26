@@ -105,8 +105,8 @@ export default function DashboardAnalyticsPage() {
                   Traffic Analysis Chart
                 </p>
                 <p className="text-xs text-muted-foreground mt-1 text-center max-w-sm">
-                  Connect a custom domain or upgrade to Pro to see detailed
-                  daily traffic visualizations and advanced metrics.
+                  Analytics tools are planned for a future release. Current
+                  dashboards focus on generation, preview, and site management.
                 </p>
                 <button className="site-primary-button mt-4 px-4 py-2 rounded-lg text-xs font-medium">
                   Upgrade to Pro
@@ -123,7 +123,7 @@ export default function DashboardAnalyticsPage() {
                   {[
                     { name: "My Portfolio", views: "1,204", pct: "64%" },
                     { name: "Freelance Services", views: "542", pct: "28%" },
-                    { name: "Design Agency", views: "145", pct: "8%" },
+                    { name: "Design Studio", views: "145", pct: "8%" },
                   ].map((site, i) => (
                     <div key={i}>
                       <div className="flex items-center justify-between text-xs mb-1">
