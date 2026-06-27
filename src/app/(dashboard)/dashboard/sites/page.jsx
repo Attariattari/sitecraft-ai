@@ -39,6 +39,7 @@ export default function DashboardSitesPage() {
   const [deletingId, setDeletingId] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [publishing, setPublishing] = useState(null);
+  const [limit, setLimit] = useState(null);
 
   useEffect(() => {
     fetchSites();
@@ -49,7 +50,10 @@ export default function DashboardSitesPage() {
     try {
       const res = await fetch("/api/sites");
       const data = await res.json();
-      if (data.success) setSites(data.sites || []);
+      if (data.success) {
+        setSites(data.sites || []);
+        setLimit(data.limit || null);
+      }
     } catch (e) {
       toast("Failed to load websites", "error");
     } finally {
@@ -85,7 +89,7 @@ export default function DashboardSitesPage() {
   const handlePublish = async (site) => {
     setPublishing(site._id);
     try {
-      const res = await fetch(`/api/sites/${site._id}/publish`, {
+      const res = await fetch(`/api/user/sites/${site._id}/publish`, {
         method: "POST",
       });
       const data = await res.json();
@@ -118,7 +122,7 @@ export default function DashboardSitesPage() {
     <DashboardShell>
       <DashboardPageHeader
         title="My Websites"
-        description={`${sites.length} website${sites.length !== 1 ? "s" : ""} total`}
+        description={limit ? `${limit.currentCount}/${limit.limit} websites used on ${limit.planSlug} plan` : `${sites.length} website${sites.length !== 1 ? "s" : ""} total`}
       >
         <Link
           href="/dashboard/generate"
@@ -128,6 +132,21 @@ export default function DashboardSitesPage() {
           Generate New
         </Link>
       </DashboardPageHeader>
+
+      {limit && !limit.allowed ? (
+        <DashboardCard className="border-amber-300 bg-amber-50 text-amber-950">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-black">{limit.reason}</p>
+              <p className="mt-1 text-sm">Create space by managing existing websites, or upgrade for higher website capacity.</p>
+            </div>
+            <div className="flex gap-2">
+              {limit.recommendedPlan ? <Link href={`/pricing/${limit.recommendedPlan}`} className="rounded-lg bg-primary px-4 py-2 text-sm font-black text-primary-foreground">Upgrade to {limit.recommendedPlan}</Link> : null}
+              <Link href="/pricing" className="rounded-lg border border-amber-300 px-4 py-2 text-sm font-black">Compare Plans</Link>
+            </div>
+          </div>
+        </DashboardCard>
+      ) : null}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -201,6 +220,7 @@ export default function DashboardSitesPage() {
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <h3 className="text-sm font-semibold text-foreground truncate max-w-[200px]">
                         {site.inputData?.name ||
+                          site.siteName ||
                           site.generatedContent?.hero?.headline ||
                           "Untitled Site"}
                       </h3>
@@ -212,6 +232,12 @@ export default function DashboardSitesPage() {
                       </span>
                       <span>·</span>
                       <span>{site.themeId || "Default theme"}</span>
+                      {site.templateSlug ? (
+                        <>
+                          <span>Â·</span>
+                          <span>{site.templateSlug}</span>
+                        </>
+                      ) : null}
                       <span>·</span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-2.5 h-2.5" />
@@ -240,7 +266,7 @@ export default function DashboardSitesPage() {
                   <div className="flex items-center gap-2 shrink-0 flex-wrap">
                     <button
                       onClick={() =>
-                        window.open(`/preview/${site._id}`, "_blank")
+                        window.open(`/dashboard/sites/${site._id}/preview`, "_blank")
                       }
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 transition-all"
                     >

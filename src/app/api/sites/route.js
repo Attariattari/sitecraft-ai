@@ -10,6 +10,7 @@ import {
   requireFeature,
   requireLimit,
 } from "@/lib/plans/planEntitlements";
+import { checkWebsiteLimit } from "@/lib/server/plans/checkWebsiteLimit";
 import { logServerError, safeErrorResponse } from "@/lib/server/security/safeError";
 import { readJson } from "@/lib/server/security/validateRequest";
 
@@ -49,10 +50,12 @@ export async function GET(request) {
     const sites = await Site.find(query)
       .sort({ createdAt: -1 })
       .limit(100);
+    const limit = await checkWebsiteLimit(currentUser.id, getUserPlanSlug(currentUser));
 
     return NextResponse.json({
       success: true,
       sites,
+      limit,
     });
   } catch (error) {
     logServerError("Get sites error", error);

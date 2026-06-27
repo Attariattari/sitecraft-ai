@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAvailableThemes } from "@/lib/themes/themeService";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { applyThemePlanLimit, formatThemeLimitForDisplay } from "@/lib/themes/themePlanLimits";
-import { getUserPlanSlug } from "@/lib/plans/planEntitlements";
+import { getUserPlanSlug, getNextPlanForLimit } from "@/lib/plans/planEntitlements";
 import { getOrSetCache, safeCacheKey } from "@/lib/server/cache/cache";
 import { serverEnv } from "@/lib/server/env";
 
@@ -15,6 +15,7 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const context = searchParams.get("context") || "generate";
     const isPublicShowcase = searchParams.get("public") === "true";
+    const includeLocked = searchParams.get("includeLocked") === "true";
     const requestedLimit = Number.parseInt(searchParams.get("limit") || "", 10);
 
     const user = await getCurrentUser();
@@ -24,9 +25,17 @@ export async function GET(req) {
       serverEnv.CACHE_PUBLIC_TTL_SECONDS,
       () => getAvailableThemes(context),
     );
-    const themes = isPublicShowcase
+    const allowedThemes = applyThemePlanLimit(availableThemes, planSlug);
+    const allowedIds = new Set(allowedThemes.flatMap((theme) => [theme.themeId, theme.slug].filter(Boolean)));
+    const themes = includeLocked
+      ? availableThemes.map((theme) => ({
+          ...theme,
+          locked: !allowedIds.has(theme.themeId) && !allowedIds.has(theme.slug),
+          upgradeTo: getNextPlanForLimit("themes", planSlug, allowedThemes.length),
+        }))
+      : isPublicShowcase
       ? availableThemes.slice(0, Number.isFinite(requestedLimit) ? requestedLimit : 6)
-      : applyThemePlanLimit(availableThemes, planSlug);
+      : allowedThemes;
 
     return NextResponse.json({
       success: true,

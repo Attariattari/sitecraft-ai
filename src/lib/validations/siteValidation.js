@@ -18,6 +18,7 @@ export const generateInputSchema = z.object({
     .optional()
     .or(z.literal("")),
   skills: z.array(z.string()).optional().default([]),
+  templateId: z.string().optional().default("portfolio-modern"),
   themeKey: z.string().min(1, "Please select a theme"),
   colorMode: z.enum(["light", "dark", "system"]).default("system"),
   category: z.enum(["portfolio"]).default("portfolio"),

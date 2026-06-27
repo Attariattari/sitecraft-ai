@@ -8,6 +8,7 @@ import { generatePortfolioWebsite } from "@/lib/ai/siteGenerator";
 import { isCategorySelectable } from "@/lib/categories/categoryService";
 import { getAvailableThemes, isThemeSelectable } from "@/lib/themes/themeService";
 import { applyThemePlanLimit } from "@/lib/themes/themePlanLimits";
+import { getActiveTemplateBySlug, isTemplateAllowedForPlan } from "@/lib/templates/templateService";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import {
   requireFeature,
@@ -35,9 +36,15 @@ export async function POST(request) {
     const rate = await enforceRateLimit(request, "website-generate", { limit: 6, windowMs: 10 * 60 * 1000 });
     if (!rate.allowed) return rate.response;
     const body = await readJson(request, 32 * 1024);
+    const normalizedBody = {
+      ...body,
+      headline: body.headline || body.profession || body.websiteTitle || "",
+      email: body.email || body.contactEmail || "",
+      templateId: body.templateId || body.templateSlug || "portfolio-modern",
+    };
 
     // Validate input
-    const validatedData = generateInputSchema.parse(body);
+    const validatedData = generateInputSchema.parse(normalizedBody);
 
     // Connect to database
     await dbConnect();
@@ -97,6 +104,26 @@ export async function POST(request) {
       }
     }
 
+    const selectedTemplate = await getActiveTemplateBySlug(validatedData.templateId);
+    if (!selectedTemplate) {
+      return NextResponse.json(
+        { success: false, error: "This template is not available for generation." },
+        { status: 400 },
+      );
+    }
+
+    if (!isTemplateAllowedForPlan(selectedTemplate, getUserPlanSlug(entitlementUser))) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: "PLAN_LIMIT_REACHED",
+          error: "Upgrade to unlock this template.",
+          upgradeTo: selectedTemplate.availablePlans?.includes("basic") ? "basic" : "pro",
+        },
+        { status: 403 },
+      );
+    }
+
     // Generate content using AI
     const generationResult = await generatePortfolioWebsite({
       fullName: validatedData.fullName,
@@ -122,7 +149,7 @@ export async function POST(request) {
     const site = new Site({
       ownerId: currentUser?.id || null,
       category: validatedData.category,
-      templateId: null, // Will be set from AI recommendation
+      templateId: selectedTemplate.slug,
       themeId: validatedData.themeKey,
       slug,
       status: "generated",
@@ -140,7 +167,8 @@ export async function POST(request) {
       generatedContent: generationResult.data,
       settings: {
         selectedTheme: validatedData.themeKey,
-        selectedTemplate: generationResult.data.templateRecommendation.templateKey,
+        selectedTemplate: selectedTemplate.slug,
+        aiRecommendedTemplate: generationResult.data.templateRecommendation.templateKey,
         mode: validatedData.colorMode,
       },
     });

@@ -2,160 +2,73 @@ import mongoose from "mongoose";
 
 const siteSchema = new mongoose.Schema(
   {
-    ownerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null, // Temporary - will be set when auth is implemented
-    },
-    category: {
-      type: String,
-      enum: ["portfolio", "business", "restaurant", "clinic", "realestate", "agency", "school", "ecommerce"],
-      default: "portfolio",
-    },
-    templateId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Template",
-      default: null,
-    },
-    themeId: {
-      type: String,
-      default: "emerald",
-    },
-    slug: {
-      type: String,
-      unique: true,
-      sparse: true,
-      lowercase: true,
-      trim: true,
-    },
-    status: {
-      type: String,
-      enum: ["draft", "generated", "published", "archived"],
-      default: "draft",
-    },
-    isPublished: {
-      type: Boolean,
-      default: false,
-    },
-    publishedAt: {
-      type: Date,
-      default: null,
-    },
+    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    category: { type: String, enum: ["portfolio", "business", "restaurant", "clinic", "realestate", "agency", "school", "ecommerce"], default: "portfolio" },
+    templateId: { type: mongoose.Schema.Types.Mixed, default: null },
+    templateSlug: { type: String, default: "", trim: true, lowercase: true },
+    themeId: { type: String, default: "emerald" },
+    themeSlug: { type: String, default: "", trim: true, lowercase: true },
+    siteName: { type: String, default: "", trim: true },
+    logo: { type: String, default: "", trim: true },
+    favicon: { type: String, default: "", trim: true },
+    description: { type: String, default: "", trim: true },
+    slug: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
+    status: { type: String, enum: ["draft", "generated", "published", "archived"], default: "draft" },
+    isPublished: { type: Boolean, default: false },
+    publishedAt: { type: Date, default: null },
     inputData: {
       name: String,
       profession: String,
       bio: String,
       email: String,
-      skills: [String],
-      projects: [
-        {
-          title: String,
-          description: String,
-          technologies: [String],
-          link: String,
-        },
-      ],
-      services: [
-        {
-          title: String,
-          description: String,
-        },
-      ],
-      experience: [
-        {
-          title: String,
-          company: String,
-          duration: String,
-          description: String,
-        },
-      ],
-      socialLinks: {
-        github: String,
-        linkedin: String,
-        twitter: String,
-        portfolio: String,
-        instagram: String,
-      },
+      phone: String,
+      skills: [mongoose.Schema.Types.Mixed],
+      projects: [mongoose.Schema.Types.Mixed],
+      services: [mongoose.Schema.Types.Mixed],
+      experience: [mongoose.Schema.Types.Mixed],
+      socialLinks: mongoose.Schema.Types.Mixed,
       websiteGoal: String,
       designPreference: String,
     },
     generatedContent: {
-      hero: {
-        headline: String,
-        subheadline: String,
-        ctaText: String,
-      },
-      about: {
-        title: String,
-        description: String,
-      },
+      hero: { headline: String, subheadline: String, ctaText: String },
+      about: { title: String, description: String },
       skills: [String],
-      services: [
-        {
-          title: String,
-          description: String,
-        },
-      ],
-      projects: [
-        {
-          title: String,
-          description: String,
-          technologies: [String],
-          link: String,
-          image: String,
-        },
-      ],
-      experience: [
-        {
-          title: String,
-          company: String,
-          duration: String,
-          description: String,
-        },
-      ],
-      cta: {
-        title: String,
-        description: String,
-        buttonText: String,
-      },
-      contact: {
-        headline: String,
-        description: String,
-      },
-      seo: {
-        title: String,
-        description: String,
-        keywords: [String],
-      },
-      templateRecommendation: {
-        templateKey: String,
-        reason: String,
-      },
-      themeRecommendation: {
-        themeId: String,
-        reason: String,
-      },
+      services: [mongoose.Schema.Types.Mixed],
+      projects: [mongoose.Schema.Types.Mixed],
+      experience: [mongoose.Schema.Types.Mixed],
+      cta: { title: String, description: String, buttonText: String },
+      contact: { headline: String, description: String },
+      seo: { title: String, description: String, keywords: [String] },
+      templateRecommendation: { templateKey: String, reason: String },
+      themeRecommendation: { themeId: String, reason: String },
       suggestions: [String],
     },
+    pages: { type: mongoose.Schema.Types.Mixed, default: [] },
+    enabledPages: { type: mongoose.Schema.Types.Mixed, default: [] },
+    navLinks: { type: mongoose.Schema.Types.Mixed, default: [] },
+    footerSettings: { type: mongoose.Schema.Types.Mixed, default: {} },
+    contactVisibility: { type: mongoose.Schema.Types.Mixed, default: {} },
+    socialVisibility: { type: mongoose.Schema.Types.Mixed, default: {} },
+    blogEnabled: { type: Boolean, default: true },
+    contactFormEnabled: { type: Boolean, default: true },
+    selectedPages: { type: [String], default: [] },
+    personalInfoSnapshot: { type: mongoose.Schema.Types.Mixed, default: {} },
+    templateSnapshot: { type: mongoose.Schema.Types.Mixed, default: {} },
+    themeSnapshot: { type: mongoose.Schema.Types.Mixed, default: {} },
+    seo: { type: mongoose.Schema.Types.Mixed, default: {} },
+    generationSettings: { type: mongoose.Schema.Types.Mixed, default: {} },
+    planAtGeneration: { type: mongoose.Schema.Types.Mixed, default: {} },
+    aiCreditsUsed: { type: Number, default: 0 },
     settings: {
       selectedTheme: String,
       selectedTemplate: String,
-      mode: {
-        type: String,
-        enum: ["light", "dark", "system"],
-        default: "system",
-      },
+      mode: { type: String, enum: ["light", "dark", "system"], default: "system" },
       customDomain: String,
     },
     analytics: {
-      views: {
-        type: Number,
-        default: 0,
-      },
-      clicks: {
-        type: Number,
-        default: 0,
-      },
+      views: { type: Number, default: 0 },
+      clicks: { type: Number, default: 0 },
     },
   },
   {
@@ -167,7 +80,7 @@ const siteSchema = new mongoose.Schema(
       { key: { status: 1 } },
       { key: { createdAt: -1 } },
     ],
-  }
+  },
 );
 
 export default mongoose.models.Site || mongoose.model("Site", siteSchema);

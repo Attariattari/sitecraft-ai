@@ -1,0 +1,57 @@
+import mongoose from "mongoose";
+
+const generatedSiteSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, default: "", trim: true },
+    category: { type: String, required: true, index: true },
+    templateId: { type: mongoose.Schema.Types.Mixed, default: null },
+    templateSlug: { type: String, required: true, lowercase: true, trim: true, index: true },
+    themeId: { type: String, default: "emerald" },
+    themeSlug: { type: String, default: "emerald", lowercase: true, trim: true },
+    siteName: { type: String, default: "", trim: true },
+    logo: { type: String, default: "", trim: true },
+    favicon: { type: String, default: "", trim: true },
+    slug: { type: String, required: true, unique: true, sparse: true, lowercase: true, trim: true },
+    status: { type: String, enum: ["draft", "preview", "published", "archived"], default: "preview", index: true },
+    pages: { type: mongoose.Schema.Types.Mixed, default: [] },
+    enabledPages: { type: mongoose.Schema.Types.Mixed, default: [] },
+    navLinks: { type: mongoose.Schema.Types.Mixed, default: [] },
+    footerSettings: {
+      showLogo: { type: Boolean, default: true },
+      showBio: { type: Boolean, default: true },
+      showQuickLinks: { type: Boolean, default: true },
+      showServices: { type: Boolean, default: true },
+      showContact: { type: Boolean, default: true },
+      showSocials: { type: Boolean, default: true },
+      showBuiltWithBadge: { type: Boolean, default: false },
+    },
+    contactVisibility: {
+      showEmail: { type: Boolean, default: true },
+      showPhone: { type: Boolean, default: false },
+      showLocation: { type: Boolean, default: false },
+      showSocialLinks: { type: Boolean, default: true },
+    },
+    socialVisibility: { type: mongoose.Schema.Types.Mixed, default: {} },
+    blogEnabled: { type: Boolean, default: true },
+    contactFormEnabled: { type: Boolean, default: true },
+    selectedPages: { type: [String], default: [] },
+    personalInfoSnapshot: { type: mongoose.Schema.Types.Mixed, default: {} },
+    templateSnapshot: { type: mongoose.Schema.Types.Mixed, default: {} },
+    themeSnapshot: { type: mongoose.Schema.Types.Mixed, default: {} },
+    seo: {
+      metaTitle: { type: String, default: "" },
+      metaDescription: { type: String, default: "" },
+      keywords: { type: [String], default: [] },
+      ogImage: { type: String, default: "" },
+    },
+    generationSettings: { type: mongoose.Schema.Types.Mixed, default: {} },
+    planAtGeneration: { type: mongoose.Schema.Types.Mixed, default: {} },
+    aiCreditsUsed: { type: Number, default: 0 },
+    publishedAt: { type: Date, default: null },
+  },
+  { timestamps: true },
+);
+
+export default mongoose.models.GeneratedSite || mongoose.model("GeneratedSite", generatedSiteSchema);

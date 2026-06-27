@@ -1,640 +1,369 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  User,
-  Briefcase,
-  Layout,
-  Sparkles,
-  Rocket,
-  ChevronRight,
-  ChevronLeft,
-  Mail,
-  ListRestart,
-  Globe,
-  Settings,
-  Loader2,
-  CheckCircle2,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { ArrowRight, Check, CheckCircle2, Globe, LayoutTemplate, Lock, Palette, Sparkles } from "lucide-react";
+import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { toast } from "@/components/dashboard/Toast";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import {
-  getAccountPurposeConfig,
-  getDashboardCopy,
-  getRecommendedThemesForPurpose,
-} from "@/lib/accountPurposeResolver";
+const steps = ["Basics", "Template", "Theme", "Personal Info", "Review"];
+const defaultPages = ["home", "about", "skills", "projects", "services", "contact"];
 
-// Simplified Components
-import { TemplateSelector } from "@/components/dashboard/generate/TemplateSelector";
-import { ThemeSelector } from "@/components/dashboard/generate/ThemeSelector";
-import { GenerateSummaryCard } from "@/components/dashboard/generate/GenerateSummaryCard";
-import { GenerateLoadingState } from "@/components/dashboard/generate/GenerateLoadingState";
-
-const formSchema = z.object({
-  fullName: z.string().min(2, "Name or Brand Name is required."),
-  profession: z.string().min(2, "Profession / Role is required."),
-  bio: z
-    .string()
-    .min(10, "Your bio/description must be at least 10 chars.")
-    .max(1000),
-  contactEmail: z
-    .string()
-    .email("Invalid email format")
-    .optional()
-    .or(z.literal("")),
-  projectTitle: z.string().optional(),
-  projectDescription: z.string().optional(),
-  projectLink: z
-    .string()
-    .url("Must be a valid URL")
-    .optional()
-    .or(z.literal("")),
-  templateId: z.string().default("modern"),
-  themeKey: z.string().default("emerald"),
-});
-
-const STEPS = [
-  { id: "profile", title: "Your Profile" },
-  { id: "projects", title: "Projects" },
-  { id: "design", title: "Design Choice" },
-];
+function slugPreview(value) {
+  return String(value || "my-website")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 export function GenerateForm() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [personalInfo, setPersonalInfo] = useState(null);
-  const [infoLoading, setInfoLoading] = useState(true);
-  const [usePersonalInfo, setUsePersonalInfo] = useState(false);
+  const searchParams = useSearchParams();
+  const [step, setStep] = useState(0);
   const [user, setUser] = useState(null);
-  const [selectedPurpose, setSelectedPurpose] = useState("");
-  const [dashboardCopy, setDashboardCopy] = useState({});
   const [categories, setCategories] = useState([]);
-  const [recommendedTheme, setRecommendedTheme] = useState("emerald");
-
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      fullName: "",
-      profession: "",
-      bio: "",
-      contactEmail: "",
-      projectTitle: "",
-      projectDescription: "",
-      projectLink: "",
-      templateId: "modern",
-      themeKey: "emerald",
-    },
-    mode: "onChange",
+  const [templates, setTemplates] = useState([]);
+  const [themes, setThemes] = useState([]);
+  const [personalInfo, setPersonalInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [message, setMessage] = useState("");
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    category: "portfolio",
+    targetAudience: "",
+    primaryGoal: "",
+    templateSlug: searchParams.get("template") || "",
+    themeSlug: "",
+    selectedPages: defaultPages,
+    contactVisibility: { email: true, phone: false, location: false, socialLinks: true },
+    seo: { metaTitle: "", metaDescription: "", keywords: [] },
   });
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    trigger,
-    formState: { errors },
-  } = form;
-  const watchedData = watch();
-
   useEffect(() => {
-    const fetchData = async () => {
+    async function load() {
+      setLoading(true);
       try {
-        const userRes = await fetch("/api/auth/me");
-        let userData = null;
-        if (userRes.ok) {
-          const resJson = await userRes.json();
-          userData = resJson.user;
-          setUser(userData);
+        const [meRes, catRes, infoRes] = await Promise.all([
+          fetch("/api/auth/me"),
+          fetch("/api/categories/available?context=generate"),
+          fetch("/api/user/personal-info"),
+        ]);
+        if (meRes.ok) {
+          const me = await meRes.json();
+          setUser(me.user);
         }
-
-        const catRes = await fetch(
-          "/api/categories/available?context=generate",
-        );
         const catData = await catRes.json();
         if (catData.success) {
-          setCategories(catData.categories);
-
-          if (userData) {
-            const primary =
-              userData.primaryPurpose || userData.accountPurpose || "portfolio";
-            const found = catData.categories.find((c) => c.slug === primary);
-
-            // If primary is not selectable, try to find another selectable one from their list
-            if (found && !found.isSelectable) {
-              const alternative = catData.categories.find(
-                (c) =>
-                  userData.selectedPurposes?.includes(c.slug) && c.isSelectable,
-              );
-              if (alternative) {
-                setSelectedPurpose(alternative.slug);
-              } else {
-                setSelectedPurpose(primary); // Still set it but UI will block
-              }
-            } else {
-              setSelectedPurpose(primary);
-            }
-
-            const activePurpose =
-              found && found.isSelectable
-                ? primary
-                : catData.categories.find((c) => c.isSelectable)?.slug ||
-                  primary;
-            handlePurposeChange(activePurpose);
-          }
+          setCategories(catData.categories || []);
+          const first = catData.categories?.find((category) => category.isSelectable)?.slug || "portfolio";
+          setForm((prev) => ({ ...prev, category: prev.category || first }));
         }
-
-        const infoRes = await fetch("/api/user/personal-info");
         const infoData = await infoRes.json();
-        if (infoData.success) {
-          setPersonalInfo(infoData);
-        }
-      } catch (err) {
-        console.error("Error loading data:", err);
+        if (infoData.success) setPersonalInfo(infoData);
+      } catch {
+        toast("Generation setup could not load.", "error");
       } finally {
-        setInfoLoading(false);
+        setLoading(false);
       }
-    };
-    fetchData();
-
-    // Realtime: refresh categories when admin updates happen
-    let bc = null;
-    try {
-      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-        bc = new BroadcastChannel("sitecraft-data");
-        bc.addEventListener("message", async (ev) => {
-          const d = ev.data || {};
-          if (d.type === "categories:refresh") {
-            try {
-              const res = await fetch("/api/categories/available?context=generate");
-              const data = await res.json();
-              if (data.success) {
-                setCategories(data.categories);
-
-                // If current selected purpose is no longer selectable, clear selection and alert
-                const current = data.categories.find((c) => c.slug === selectedPurpose);
-                if (current && !current.isSelectable) {
-                  setSelectedPurpose("");
-                  alert("This category is no longer available.");
-                }
-              }
-            } catch (e) {
-              console.error("Failed to refresh categories:", e);
-            }
-          }
-        });
-      }
-    } catch (e) {
-      // ignore
     }
-
-    return () => {
-      if (bc) bc.close();
-    };
+    load();
   }, []);
 
-  // Handle purpose change
-  const handlePurposeChange = (purpose) => {
-    const category = categories.find((c) => c.slug === purpose);
-    if (category && !category.isSelectable) {
-      alert("This category is currently unavailable for generation.");
-      return;
+  useEffect(() => {
+    async function loadTemplatesAndThemes() {
+      const [templateRes, themeRes] = await Promise.all([
+        fetch(`/api/templates?status=active&category=${encodeURIComponent(form.category)}`),
+        fetch("/api/themes/available?context=generate&includeLocked=true"),
+      ]);
+      const templateData = await templateRes.json();
+      const themeData = await themeRes.json();
+      if (templateData.success) {
+        setTemplates(templateData.templates || []);
+        const firstAllowed = templateData.templates?.find((template) => !template.locked);
+        setForm((prev) => ({
+          ...prev,
+          templateSlug: prev.templateSlug && templateData.templates?.some((template) => template.slug === prev.templateSlug && !template.locked)
+            ? prev.templateSlug
+            : firstAllowed?.slug || "",
+          selectedPages: firstAllowed?.pages?.filter((page) => !page.optional).map((page) => page.slug) || prev.selectedPages,
+        }));
+      }
+      if (themeData.success) {
+        setThemes(themeData.themes || []);
+        const firstAllowed = themeData.themes?.find((theme) => !theme.locked);
+        setForm((prev) => ({
+          ...prev,
+          themeSlug: prev.themeSlug && themeData.themes?.some((theme) => (theme.themeId === prev.themeSlug || theme.slug === prev.themeSlug) && !theme.locked)
+            ? prev.themeSlug
+            : firstAllowed?.themeId || firstAllowed?.slug || "",
+        }));
+      }
     }
+    if (form.category) loadTemplatesAndThemes();
+  }, [form.category]);
 
-    setSelectedPurpose(purpose);
-    const copy = getDashboardCopy(purpose);
-    setDashboardCopy(copy);
-    const themes = getRecommendedThemesForPurpose(purpose);
-    setRecommendedTheme(themes[0] || "emerald");
-    setValue("themeKey", themes[0] || "emerald");
-    setUsePersonalInfo(false); // Reset auto-fill if purpose changes
-  };
+  const selectedTemplate = templates.find((template) => template.slug === form.templateSlug);
+  const selectedTheme = themes.find((theme) => theme.themeId === form.themeSlug || theme.slug === form.themeSlug);
+  const requiredStatus = useMemo(() => {
+    const shared = personalInfo?.sharedInfo || {};
+    const purpose = personalInfo?.purposeInfo?.[form.category] || {};
+    return [
+      ["fullName", "Full name", shared.fullName || shared.displayName || purpose.fullName],
+      ["headline", "Headline", purpose.headline || purpose.professionalTitle || purpose.whatIDo],
+      ["bio", "Bio", shared.bio || purpose.bio || purpose.aboutMe || purpose.aboutText],
+      ["email", "Email", shared.email || purpose.email],
+    ].map(([field, label, value]) => ({ field, label, complete: Boolean(String(value || "").trim()) }));
+  }, [personalInfo, form.category]);
+  const missingRequired = requiredStatus.filter((item) => !item.complete);
+  function canContinue() {
+    if (step === 0) return form.title.trim() && form.category;
+    if (step === 1) return form.templateSlug && selectedTemplate && !selectedTemplate.locked;
+    if (step === 2) return form.themeSlug && selectedTheme && !selectedTheme.locked;
+    if (step === 3) return missingRequired.length === 0;
+    return true;
+  }
 
-  const handleUsePersonalInfo = () => {
-    if (!personalInfo) return;
-    setUsePersonalInfo(true);
-
-    const shared = personalInfo.sharedInfo || {};
-    const purposeSpecific = personalInfo.purposeInfo?.[selectedPurpose] || {};
-
-    // Auto-fill form from combined data
-    setValue(
-      "fullName",
-      shared.fullName || shared.displayName || watchedData.fullName,
-    );
-    setValue("contactEmail", shared.email || watchedData.contactEmail);
-    setValue(
-      "bio",
-      shared.bio ||
-        purposeSpecific.aboutMe ||
-        purposeSpecific.careerObjective ||
-        watchedData.bio,
-    );
-
-    // Purpose specific title/profession
-    const professionFallback =
-      purposeSpecific.professionalTitle ||
-      purposeSpecific.businessType ||
-      purposeSpecific.salonType;
-    setValue("profession", professionFallback || watchedData.profession);
-
-    // Grab first project if exists
-    const projects = purposeSpecific.projects || purposeSpecific.services || [];
-    if (projects.length > 0) {
-      const p = projects[0];
-      setValue(
-        "projectTitle",
-        p.projectTitle || p.serviceTitle || p.serviceName || "",
-      );
-      setValue(
-        "projectDescription",
-        p.projectDescription || p.serviceDescription || "",
-      );
-      setValue("projectLink", p.liveLink || "");
-    }
-  };
-
-  const handleNext = async () => {
-    let fields = [];
-    if (currentStep === 0)
-      fields = ["fullName", "profession", "bio", "contactEmail"];
-    if (currentStep === 1) fields = ["projectTitle"];
-
-    if (await trigger(fields)) {
-      setCurrentStep((prev) => prev + 1);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  const handleBack = () => {
-    setCurrentStep((prev) => prev - 1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const onSubmit = async (data) => {
-    setIsGenerating(true);
-    const apiData = {
-      ...data,
-      category: selectedPurpose,
-      accountPurpose: selectedPurpose,
-      sharedInfo: personalInfo?.sharedInfo,
-      purposeInfo: personalInfo?.purposeInfo?.[selectedPurpose],
-    };
-
+  async function generate() {
+    if (!canContinue()) return;
+    setGenerating(true);
+    setMessage("Creating website preview...");
     try {
-      const res = await fetch("/api/generate", {
+      const response = await fetch("/api/user/sites/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(apiData),
+        body: JSON.stringify(form),
       });
-      const result = await res.json();
-      if (res.ok && result.siteId) {
-        window.location.href = `/result/${result.siteId}`;
-      } else {
-        throw new Error(result.error || "Failed to generate site.");
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        setMessage(data.message || "Website could not be generated.");
+        if (data.code === "WEBSITE_LIMIT_REACHED") return;
+        throw new Error(data.message || "Website could not be generated.");
       }
-    } catch (e) {
-      alert(e.message);
-      setIsGenerating(false);
+      window.location.href = data.previewUrl;
+    } catch (error) {
+      toast(error.message, "error");
+    } finally {
+      setGenerating(false);
     }
-  };
+  }
 
-  if (isGenerating) return <GenerateLoadingState />;
-
-  const selectedPurposes = user?.selectedPurposes || [];
+  if (loading) {
+    return <DashboardCard><p className="text-sm font-semibold text-muted-foreground">Loading generation setup...</p></DashboardCard>;
+  }
 
   return (
-    <div className="w-full max-w-[1240px] mx-auto px-4 md:px-0 pb-20">
-      <div className="mb-10 lg:mb-14">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-          <div>
-            <h1 className="text-[32px] md:text-[40px] font-black text-foreground mb-4 leading-tight tracking-tight">
-              {dashboardCopy.generateTitle || "Generate Your Website"}
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              {dashboardCopy.generateSubtitle ||
-                "Create a stunning website for your specific niche."}
-            </p>
-          </div>
-
-          {selectedPurposes.length > 1 && (
-            <div className="bg-muted/30 p-2 rounded-2xl border border-border flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase text-muted-foreground px-2">
-                Generate for:
-              </span>
-              <div className="flex gap-1">
-                {selectedPurposes.map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => handlePurposeChange(p)}
-                    className={cn(
-                      "px-4 py-2 rounded-xl text-xs font-bold transition-all",
-                      selectedPurpose === p
-                        ? "bg-primary text-primary-foreground shadow-lg"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    {getAccountPurposeConfig(p).label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Step Indicator */}
-        <div className="flex items-center gap-4">
-          {STEPS.map((step, idx) => (
-            <div key={step.id} className="flex items-center gap-3">
-              <div
-                className={cn(
-                  "w-9 h-9 rounded-full border-2 flex items-center justify-center text-[13px] font-black transition-all",
-                  currentStep === idx
-                    ? "bg-primary border-primary text-white"
-                    : currentStep > idx
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
-                      : "bg-muted border-border text-muted-foreground/60",
-                )}
-              >
-                {currentStep > idx ? "✓" : idx + 1}
-              </div>
-              <span
-                className={cn(
-                  "hidden lg:block text-[12px] font-black uppercase tracking-wider",
-                  currentStep === idx
-                    ? "text-foreground"
-                    : "text-muted-foreground/60",
-                )}
-              >
-                {step.title}
-              </span>
-              {idx < STEPS.length - 1 && (
-                <div className="hidden sm:block w-8 h-[2px] bg-border mx-2" />
-              )}
-            </div>
+    <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="space-y-5">
+        <div className="flex gap-2 overflow-x-auto">
+          {steps.map((label, index) => (
+            <button key={label} onClick={() => setStep(index)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-black ${step === index ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground border border-border"}`}>
+              {index + 1}. {label}
+            </button>
           ))}
         </div>
 
-        {/* Personal Info Banner */}
-        {!infoLoading && personalInfo?.sharedInfo ? (
-          <div className="mt-8 p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
-                <Sparkles className="w-5 h-5" />
+        {step === 0 && (
+          <DashboardCard>
+            <SectionHeader icon={Globe} title="Website Basics" text="Start with a title, active category, and setup context." />
+            <div className="mt-5 grid gap-4">
+              <Input label="Website Title" value={form.title} onChange={(title) => setForm({ ...form, title })} placeholder="My Developer Portfolio" required />
+              <p className="text-xs font-semibold text-muted-foreground">Slug preview: <span className="text-primary">/{slugPreview(form.title)}</span></p>
+              <Textarea label="Website Short Description" value={form.description} onChange={(description) => setForm({ ...form, description })} placeholder="A short SEO-friendly summary." />
+              <div className="grid gap-3 md:grid-cols-2">
+                <Input label="Target Audience" value={form.targetAudience} onChange={(targetAudience) => setForm({ ...form, targetAudience })} placeholder="Clients, recruiters, employers" />
+                <Input label="Primary Goal" value={form.primaryGoal} onChange={(primaryGoal) => setForm({ ...form, primaryGoal })} placeholder="Get clients, show portfolio" />
               </div>
               <div>
-                <h3 className="text-emerald-500 font-bold text-sm">
-                  Pro Personal Info Sync Available
-                </h3>
-                <p className="text-emerald-500/70 text-xs mt-0.5 font-medium">
-                  Inject your global shared info + {selectedPurpose} specific
-                  details for high-fidelity generation.
-                </p>
+                <p className="mb-2 text-xs font-black uppercase text-muted-foreground">Website Purpose / Category</p>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {categories.map((category) => (
+                    <button key={category.slug} type="button" disabled={!category.isSelectable} onClick={() => setForm({ ...form, category: category.slug })} className={`rounded-xl border p-4 text-left ${form.category === category.slug ? "border-primary bg-primary/5" : "border-border bg-card"} ${!category.isSelectable ? "opacity-60" : ""}`}>
+                      <p className="font-black text-foreground">{category.label || category.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{category.isSelectable ? "Available now" : category.lockedReason || "Coming soon"}</p>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-            <Button
-              onClick={handleUsePersonalInfo}
-              disabled={usePersonalInfo}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 px-6 rounded-xl"
-            >
-              {usePersonalInfo
-                ? "Data Injected ✓"
-                : "Auto-Fill with AI Context"}
-            </Button>
-          </div>
-        ) : null}
-      </div>
+          </DashboardCard>
+        )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-8">
-          <form className="space-y-10">
-            <AnimatePresence mode="wait">
-              {currentStep === 0 && (
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="space-y-8"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <User className="w-6 h-6 text-primary" />
-                    <h2 className="text-2xl font-black">1. Brand & Profile</h2>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormGroup
-                      label="Name / Brand Name"
-                      error={errors.fullName?.message}
-                    >
-                      <Input
-                        {...register("fullName")}
-                        placeholder="e.g. Creative Studio"
-                        className="site-input"
-                      />
-                    </FormGroup>
-                    <FormGroup
-                      label="Profession / Role"
-                      error={errors.profession?.message}
-                    >
-                      <Input
-                        {...register("profession")}
-                        placeholder="e.g. Design Agency"
-                        className="site-input"
-                      />
-                    </FormGroup>
-                  </div>
-                  <FormGroup
-                    label="Website Bio / Narrative"
-                    error={errors.bio?.message}
-                    helper="Write what you want your audience to know. AI builds your pages based on this."
-                  >
-                    <textarea
-                      {...register("bio")}
-                      className="site-textarea"
-                      placeholder="Tell the world your story..."
-                    />
-                  </FormGroup>
-                  <FormGroup
-                    label="Contact Email"
-                    error={errors.contactEmail?.message}
-                  >
-                    <div className="relative">
-                      <Input
-                        {...register("contactEmail")}
-                        placeholder="hello@brand.com"
-                        className="site-input pl-11"
-                      />
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </FormGroup>
-                </motion.div>
-              )}
-
-              {currentStep === 1 && (
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="space-y-8"
-                >
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="w-6 h-6 text-primary" />
-                    <h2 className="text-2xl font-black">
-                      2. Featured Work / Services
-                    </h2>
-                  </div>
-                  <Card className="p-8 bg-muted/20 border-border rounded-3xl space-y-6">
-                    <FormGroup label="Service / Project Title">
-                      <Input
-                        {...register("projectTitle")}
-                        placeholder="e.g. AI Implementation"
-                        className="site-input bg-background"
-                      />
-                    </FormGroup>
-                    <FormGroup label="Description">
-                      <textarea
-                        {...register("projectDescription")}
-                        placeholder="Brief details about this highlight..."
-                        className="site-textarea bg-background h-32 min-h-0"
-                      />
-                    </FormGroup>
-                    <FormGroup label="External Link (Optional)">
-                      <Input
-                        {...register("projectLink")}
-                        placeholder="https://..."
-                        className="site-input bg-background"
-                      />
-                    </FormGroup>
-                  </Card>
-                </motion.div>
-              )}
-
-              {currentStep === 2 && (
-                <motion.div
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="space-y-12"
-                >
-                  <div className="space-y-8">
-                    <h3 className="text-xl font-bold flex items-center gap-3">
-                      <Layout className="w-5 h-5 text-primary" /> Layout Choice
-                    </h3>
-                    <TemplateSelector
-                      value={watchedData.templateId}
-                      onChange={(id) => setValue("templateId", id)}
-                      accountPurpose={selectedPurpose}
-                    />
-                  </div>
-                  <div className="space-y-8">
-                    <h3 className="text-xl font-bold flex items-center gap-3">
-                      <Sparkles className="w-5 h-5 text-primary" /> Color &
-                      Theme
-                    </h3>
-                    <ThemeSelector
-                      value={watchedData.themeKey}
-                      onChange={(key) => setValue("themeKey", key)}
-                      accountPurpose={selectedPurpose}
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="flex items-center justify-between pt-8 border-t border-border">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleBack}
-                disabled={currentStep === 0}
-                className="font-bold"
-              >
-                Back
-              </Button>
-              {currentStep < STEPS.length - 1 ? (
-                <Button
-                  type="button"
-                  onClick={handleNext}
-                  className="site-primary-button px-10 h-14 rounded-xl font-black"
-                >
-                  Next Step
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={handleSubmit(onSubmit)}
-                  className="site-primary-button px-12 h-14 rounded-xl font-black shadow-xl shadow-primary/20 gap-3"
-                >
-                  Construct AI Website <Rocket className="w-5 h-5" />
-                </Button>
-              )}
+        {step === 1 && (
+          <DashboardCard>
+            <SectionHeader icon={LayoutTemplate} title="Choose Template" text="Only active templates for your selected category can be used." />
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {templates.map((template) => (
+                <TemplateCard key={template.slug} template={template} selected={form.templateSlug === template.slug} onSelect={() => !template.locked && setForm({ ...form, templateSlug: template.slug, selectedPages: template.pages?.filter((page) => !page.optional).map((page) => page.slug) || defaultPages })} />
+              ))}
             </div>
-          </form>
-        </div>
+          </DashboardCard>
+        )}
 
-        <aside className="lg:col-span-4 lg:sticky lg:top-24">
-          <GenerateSummaryCard
-            formData={{
-              ...watchedData,
-              websiteTitle: watchedData.profession,
-              description: watchedData.bio,
-            }}
-            isPending={isGenerating}
-            onGenerate={currentStep === 2 ? handleSubmit(onSubmit) : handleNext}
-          />
-        </aside>
+        {step === 2 && (
+          <DashboardCard>
+            <SectionHeader icon={Palette} title="Choose Theme" text="Theme access follows your current plan. Locked themes are blocked server-side too." />
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {themes.map((theme) => (
+                <ThemeCard key={theme.themeId || theme.slug} theme={theme} selected={form.themeSlug === (theme.themeId || theme.slug)} onSelect={() => !theme.locked && setForm({ ...form, themeSlug: theme.themeId || theme.slug })} />
+              ))}
+            </div>
+          </DashboardCard>
+        )}
+
+        {step === 3 && (
+          <DashboardCard>
+            <SectionHeader icon={CheckCircle2} title="Review Personal Info" text="This saved data will fill your selected template dynamically." />
+            {missingRequired.length ? (
+              <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+                <p className="font-black">Complete your Personal Info before generating this website.</p>
+                <p className="mt-2 text-sm">Missing: {missingRequired.map((item) => item.label).join(", ")}</p>
+                <Link href="/dashboard/personal-info" className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-black text-primary-foreground">Update Personal Info</Link>
+              </div>
+            ) : null}
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {requiredStatus.map((item) => (
+                <div key={item.field} className="rounded-lg border border-border bg-muted/30 p-3 text-sm font-semibold">
+                  {item.complete ? <Check className="mr-2 inline size-4 text-primary" /> : <Lock className="mr-2 inline size-4 text-amber-600" />}
+                  {item.label}
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {Object.entries(form.contactVisibility).map(([key, checked]) => (
+                <label key={key} className="flex items-center gap-2 rounded-lg border border-border p-3 text-sm font-bold">
+                  <input type="checkbox" checked={checked} onChange={(event) => setForm({ ...form, contactVisibility: { ...form.contactVisibility, [key]: event.target.checked } })} />
+                  Show {key.replace(/([A-Z])/g, " $1").toLowerCase()}
+                </label>
+              ))}
+            </div>
+          </DashboardCard>
+        )}
+
+        {step === 4 && (
+          <DashboardCard>
+            <SectionHeader icon={Sparkles} title="Review & Generate" text="Final server checks happen after you click Generate." />
+            <div className="mt-5 grid gap-3 text-sm">
+              <Review label="Website title" value={form.title} />
+              <Review label="Generated slug preview" value={slugPreview(form.title)} />
+              <Review label="Category" value={form.category} />
+              <Review label="Template" value={selectedTemplate?.name} />
+              <Review label="Theme" value={selectedTheme?.name || selectedTheme?.label} />
+              <Review label="Pages" value={form.selectedPages.join(", ")} />
+            </div>
+            {message ? <UpgradeMessage message={message} userPlan={user?.plan || "free"} /> : null}
+            <button disabled={!canContinue() || generating} onClick={generate} className="mt-6 inline-flex h-12 items-center justify-center rounded-lg bg-primary px-5 text-sm font-black text-primary-foreground disabled:opacity-50">
+              {generating ? "Generating..." : "Generate Website Preview"}
+            </button>
+          </DashboardCard>
+        )}
+
+        <div className="flex justify-between">
+          <button disabled={step === 0} onClick={() => setStep((value) => Math.max(0, value - 1))} className="rounded-lg border border-border px-4 py-2 text-sm font-black disabled:opacity-50">Back</button>
+          {step < 4 ? (
+            <button disabled={!canContinue()} onClick={() => setStep((value) => Math.min(4, value + 1))} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-black text-primary-foreground disabled:opacity-50">
+              Continue <ArrowRight className="size-4" />
+            </button>
+          ) : null}
+        </div>
       </div>
 
-      <style jsx global>{`
-        .site-input {
-          height: 54px !important;
-          font-size: 15px !important;
-          border-radius: 12px !important;
-          border-color: rgba(var(--border), 0.5);
-        }
-        .site-textarea {
-          min-height: 140px !important;
-          font-size: 15px !important;
-          border-radius: 16px !important;
-          padding: 16px !important;
-          border: 1px solid rgba(var(--border), 0.5);
-          width: 100%;
-          transition: all 0.2s;
-        }
-        .site-textarea:focus {
-          border-color: #10b981 !important;
-          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.08) !important;
-          outline: none;
-        }
-      `}</style>
+      <DashboardCard className="h-fit">
+        <p className="text-xs font-black uppercase text-primary">Generation Review</p>
+        <div className="mt-4 space-y-3 text-sm">
+          <Review label="Current plan" value={user?.plan || "free"} />
+          <Review label="Category" value={form.category} />
+          <Review label="Template" value={selectedTemplate?.name || "Select a template"} />
+          <Review label="Theme" value={selectedTheme?.name || selectedTheme?.label || "Select a theme"} />
+          <Review label="Missing info" value={missingRequired.length ? missingRequired.map((item) => item.label).join(", ") : "Ready"} />
+        </div>
+      </DashboardCard>
     </div>
   );
 }
 
-function FormGroup({ label, error, helper, children }) {
+function SectionHeader({ icon: Icon, title, text }) {
   return (
-    <div className="space-y-2.5">
-      <div className="flex items-center justify-between">
-        <Label className="text-[13px] font-bold text-foreground">{label}</Label>
-        {error && (
-          <span className="text-[10px] font-black text-red-500 uppercase">
-            {error}
-          </span>
-        )}
+    <div>
+      <div className="flex items-center gap-3">
+        <span className="rounded-lg bg-primary/10 p-2 text-primary"><Icon className="size-5" /></span>
+        <h2 className="text-xl font-black text-foreground">{title}</h2>
       </div>
-      {children}
-      {helper && (
-        <p className="text-[12px] text-muted-foreground font-medium px-1">
-          {helper}
-        </p>
-      )}
+      <p className="mt-2 text-sm text-muted-foreground">{text}</p>
     </div>
+  );
+}
+
+function TemplateCard({ template, selected, onSelect }) {
+  return (
+    <button type="button" onClick={onSelect} className={`overflow-hidden rounded-xl border text-left ${selected ? "border-primary bg-primary/5" : "border-border bg-card"} ${template.locked ? "opacity-75" : ""}`}>
+      <div className="relative aspect-[16/9] bg-muted">
+        <Image src={template.previewImage || "/templates/template-preview.svg"} alt={template.name} fill sizes="360px" className="object-cover" />
+        {template.locked ? <span className="absolute right-3 top-3 rounded-full bg-background px-2 py-1 text-xs font-black text-primary"><Lock className="mr-1 inline size-3" />Upgrade</span> : null}
+      </div>
+      <div className="p-4">
+        <p className="font-black text-foreground">{template.name}</p>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">{template.bestFor || template.shortDescription}</p>
+        <p className="mt-3 text-xs font-semibold text-muted-foreground">Pages: {(template.pages || []).filter((page) => !page.optional).map((page) => page.name).join(", ")}</p>
+      </div>
+    </button>
+  );
+}
+
+function ThemeCard({ theme, selected, onSelect }) {
+  const colors = theme.colors || {};
+  return (
+    <button type="button" onClick={onSelect} className={`rounded-xl border p-4 text-left ${selected ? "border-primary bg-primary/5" : "border-border bg-card"} ${theme.locked ? "opacity-75" : ""}`}>
+      <div className="mb-4 flex h-4 overflow-hidden rounded-full">
+        {[colors.primary, colors.secondary, colors.accent, colors.background].filter(Boolean).map((color) => <span key={color} className="flex-1" style={{ backgroundColor: color }} />)}
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-black text-foreground">{theme.name || theme.label}</p>
+        {theme.locked ? <Lock className="size-4 text-primary" /> : selected ? <Check className="size-4 text-primary" /> : null}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">{theme.locked ? `Upgrade to ${theme.upgradeTo || "higher plan"}` : "Light/dark support"}</p>
+    </button>
+  );
+}
+
+function UpgradeMessage({ message, userPlan }) {
+  const plan = userPlan === "free" ? "basic" : userPlan === "basic" ? "pro" : "";
+  return (
+    <div className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+      <p className="font-black">{message}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {plan ? <Link href={`/pricing/${plan}`} className="rounded-lg bg-primary px-3 py-2 font-black text-primary-foreground">Upgrade to {plan}</Link> : <Link href="/dashboard/sites" className="rounded-lg bg-primary px-3 py-2 font-black text-primary-foreground">Manage Websites</Link>}
+        <Link href="/pricing" className="rounded-lg border border-amber-300 px-3 py-2 font-black">Compare Plans</Link>
+      </div>
+    </div>
+  );
+}
+
+function Review({ label, value }) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-muted/30 p-3">
+      <span className="font-bold text-muted-foreground">{label}</span>
+      <span className="text-right font-black text-foreground">{value || "-"}</span>
+    </div>
+  );
+}
+
+function Input({ label, value, onChange, placeholder, required }) {
+  return (
+    <label className="block text-xs font-black uppercase text-muted-foreground">
+      {label}{required ? " *" : ""}
+      <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-3 text-sm font-semibold text-foreground outline-none focus:border-primary" />
+    </label>
+  );
+}
+
+function Textarea({ label, value, onChange, placeholder }) {
+  return (
+    <label className="block text-xs font-black uppercase text-muted-foreground">
+      {label}
+      <textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="mt-2 min-h-24 w-full rounded-lg border border-border bg-background px-3 py-3 text-sm font-semibold text-foreground outline-none focus:border-primary" />
+    </label>
   );
 }

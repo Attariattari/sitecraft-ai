@@ -1,57 +1,33 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/dbConnect";
-import Template from "@/models/Template";
-import { TEMPLATE_REGISTRY } from "@/lib/templateRegistry";
-import { siteCraftTemplates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
-import { getPlanLimits, getUserPlanSlug, requireFeature } from "@/lib/plans/planEntitlements";
+import { getUserPlanSlug } from "@/lib/plans/planEntitlements";
+import { getPublicTemplates } from "@/lib/templates/templateService";
 import { logServerError, safeErrorResponse } from "@/lib/server/security/safeError";
-import { getOrSetCache, safeCacheKey } from "@/lib/server/cache/cache";
-import { serverEnv } from "@/lib/server/env";
 
 export async function GET(request) {
   try {
-    await dbConnect();
+    const { searchParams } = new URL(request.url);
     const user = await getCurrentUser();
-    const entitlementUser = user || { plan: "free" };
-
-    const templateAccess = requireFeature(entitlementUser, "templateAccess");
-    if (!templateAccess.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          code: templateAccess.code,
-          message: templateAccess.message,
-          upgradeTo: templateAccess.upgradeTo,
-        },
-        { status: 403 },
-      );
-    }
-
-    const planSlug = getUserPlanSlug(entitlementUser);
-    await getOrSetCache("public:templates:db-seed", serverEnv.CACHE_PUBLIC_TTL_SECONDS, async () => {
-      let templates = await Template.find({ isActive: true }).sort({ order: 1 }).lean();
-      if (templates.length === 0) {
-        const created = await Template.insertMany(siteCraftTemplates);
-        templates = created.map((item) => item.toObject());
-      }
-      return templates.length;
+    const planSlug = getUserPlanSlug(user || { plan: "free" });
+    const templates = await getPublicTemplates({
+      status: searchParams.get("status") || "",
+      category: searchParams.get("category") || "",
+      plan: searchParams.get("plan") || "",
+      search: searchParams.get("search") || "",
+      featured: searchParams.get("featured") || "",
     });
-    const key = safeCacheKey(["public", "templates", planSlug]);
-    const registryTemplates = await getOrSetCache(key, serverEnv.CACHE_PUBLIC_TTL_SECONDS, async () =>
-      Object.values(TEMPLATE_REGISTRY).sort((a, b) => a.order - b.order),
-    );
-    const templateLimit = getPlanLimits(planSlug).templates;
-    const visibleTemplates = templateLimit === -1
-      ? registryTemplates
-      : registryTemplates.slice(0, templateLimit);
+    const activeTemplates = templates.filter((template) => template.status === "active");
 
     return NextResponse.json({
       success: true,
-      templates: visibleTemplates,
-      count: visibleTemplates.length,
+      templates: templates.map((template) => ({
+        ...template,
+        locked: template.status === "active" && !template.availablePlans.includes(planSlug),
+        upgradeTo: template.availablePlans.includes("basic") ? "basic" : "pro",
+      })),
+      count: templates.length,
+      activeCount: activeTemplates.length,
       plan: planSlug,
-      totalAvailable: registryTemplates.length,
     });
   } catch (error) {
     logServerError("Get templates error", error);

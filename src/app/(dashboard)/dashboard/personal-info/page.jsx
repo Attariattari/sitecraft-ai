@@ -398,6 +398,7 @@ export default function PersonalInfoPage() {
   const [socialLinks, setSocialLinks] = useState({});
 
   const [toast, setToast] = useState(null);
+  const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -482,6 +483,32 @@ export default function PersonalInfoPage() {
     }
   };
 
+  const handleSeedProfessionalProfile = async () => {
+    setSeeding(true);
+    setToast(null);
+    try {
+      const res = await fetch("/api/user/personal-info/seed-professional", {
+        method: "POST",
+      });
+      const result = await res.json();
+      if (!result.success) {
+        setToast({ type: "error", message: result.message || "Failed to load professional profile." });
+        return;
+      }
+      setSharedData(result.sharedInfo || {});
+      setPurposeData(result.purposeInfo || {});
+      setSocialLinks(result.sharedInfo?.socialLinks || {});
+      if (result.user) setUser(result.user);
+      setActiveTab("portfolio");
+      setToast({ type: "success", message: "Professional profile loaded and saved. You can edit it anytime." });
+    } catch (err) {
+      setToast({ type: "error", message: "A server error occurred." });
+    } finally {
+      setSeeding(false);
+      setTimeout(() => setToast(null), 3500);
+    }
+  };
+
   const handleSharedChange = (name, val) =>
     setSharedData((prev) => ({ ...prev, [name]: val }));
   const handleSocialChange = (name, val) =>
@@ -539,6 +566,18 @@ export default function PersonalInfoPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            disabled={seeding || saving}
+            onClick={handleSeedProfessionalProfile}
+            className="flex items-center gap-2 border border-primary/30 bg-primary/10 text-primary px-5 py-3 rounded-xl font-bold transition-all hover:bg-primary/15 disabled:opacity-50"
+          >
+            {seeding ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            Load Professional Profile
+          </button>
           <button
             disabled={saving}
             onClick={handleSave}
