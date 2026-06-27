@@ -18,6 +18,14 @@ export const metadata = {
   title: "SiteCraft AI - Build Beautiful Websites with AI",
   description:
     "SiteCraft AI turns your idea into a fully-designed, content-rich website in minutes. No code, no designer required.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/icon.svg",
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   keywords: [
     "AI website builder",
     "no-code",

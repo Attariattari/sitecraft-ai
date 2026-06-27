@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import { serverEnv } from "@/lib/server/env";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = serverEnv.MONGODB_URI;
 
 /**
  * Global is used here to maintain a cached connection across hot reloads
@@ -34,7 +35,7 @@ async function dbConnect() {
         return mongoose;
       })
       .catch((err) => {
-        console.error("MongoDB connection error:", err);
+        console.error(`MongoDB connection error: ${err.message}`);
         throw err;
       });
   }

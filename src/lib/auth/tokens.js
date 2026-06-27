@@ -1,12 +1,11 @@
 import jwt from "jsonwebtoken";
+import { serverEnv } from "@/lib/server/env";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = serverEnv.JWT_SECRET;
 if (!JWT_SECRET) {
   // Graceful fallback for development/build if needed, but error at runtime in production
-  if (process.env.NODE_ENV === "production" && !process.env.CI) {
-    console.warn(
-      "⚠️ JWT_SECRET is missing. Proceeding with fallback for build phase.",
-    );
+  if (serverEnv.NODE_ENV === "production" && !process.env.CI) {
+    console.warn("JWT_SECRET is missing. Proceeding with fallback for build phase.");
   }
 }
 

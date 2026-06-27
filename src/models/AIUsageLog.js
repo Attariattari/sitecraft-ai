@@ -11,6 +11,7 @@ const aiUsageLogSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Site",
     },
+    route: { type: String, default: "" },
     provider: {
       type: String,
       default: "gemini",
@@ -22,12 +23,15 @@ const aiUsageLogSchema = new mongoose.Schema(
     promptTokens: Number,
     outputTokens: Number,
     totalTokens: Number,
+    tokensUsed: Number,
+    creditsUsed: { type: Number, default: 0 },
     status: {
       type: String,
       enum: ["success", "failed", "partial"],
       default: "success",
     },
     error: String,
+    errorMessage: String,
   },
   {
     timestamps: true,

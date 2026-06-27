@@ -14,7 +14,6 @@ const PlanSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       enum: ["free", "basic", "pro", "agency"],
-      index: true,
     },
     description: {
       type: String,
@@ -99,6 +98,20 @@ const PlanSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    benefits: {
+      type: [String],
+      default: [],
+    },
+    trialDays: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    bonusMonths: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     highlights: {
       type: [String],
       default: [],
@@ -109,6 +122,7 @@ const PlanSchema = new mongoose.Schema(
   },
 );
 
+PlanSchema.index({ slug: 1 }, { unique: true });
 PlanSchema.index({ isActive: 1, isPublic: 1, isPurchasable: 1, sortOrder: 1 });
 
 const Plan = mongoose.models.Plan || mongoose.model("Plan", PlanSchema);

@@ -3,6 +3,8 @@ import { getAvailableThemes } from "@/lib/themes/themeService";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { applyThemePlanLimit, formatThemeLimitForDisplay } from "@/lib/themes/themePlanLimits";
 import { getUserPlanSlug } from "@/lib/plans/planEntitlements";
+import { getOrSetCache, safeCacheKey } from "@/lib/server/cache/cache";
+import { serverEnv } from "@/lib/server/env";
 
 /**
  * Public API to fetch available themes based on context.
@@ -17,7 +19,11 @@ export async function GET(req) {
 
     const user = await getCurrentUser();
     const planSlug = getUserPlanSlug(user || { plan: "free" });
-    const availableThemes = await getAvailableThemes(context);
+    const availableThemes = await getOrSetCache(
+      safeCacheKey(["public", "themes", context]),
+      serverEnv.CACHE_PUBLIC_TTL_SECONDS,
+      () => getAvailableThemes(context),
+    );
     const themes = isPublicShowcase
       ? availableThemes.slice(0, Number.isFinite(requestedLimit) ? requestedLimit : 6)
       : applyThemePlanLimit(availableThemes, planSlug);

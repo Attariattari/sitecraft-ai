@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const variantClasses = {
-  fullscreen: "fixed inset-0 z-[9999] min-h-screen bg-background/95 backdrop-blur-xl",
+  fullscreen: "fixed inset-0 z-[9999] min-h-screen bg-transparent",
   section: "min-h-[320px] bg-transparent",
   inline: "min-h-0 bg-transparent",
   button: "min-h-0 bg-transparent",
@@ -93,24 +93,6 @@ export function SiteCraftLoader({
       aria-live="polite"
       aria-label={label}
     >
-      {!isInline && (
-        <>
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-primary-soft via-transparent to-accent-soft opacity-80" />
-          <motion.div
-            aria-hidden="true"
-            animate={{ x: ["-35%", "35%", "-35%"], y: ["-18%", "18%", "-18%"] }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute h-72 w-72 rounded-full bg-primary-soft blur-3xl"
-          />
-          <motion.div
-            aria-hidden="true"
-            animate={{ x: ["28%", "-28%", "28%"], y: ["22%", "-12%", "22%"] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute h-72 w-72 rounded-full bg-accent-soft blur-3xl"
-          />
-        </>
-      )}
-
       <motion.div
         initial={{ opacity: 0, y: 14, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

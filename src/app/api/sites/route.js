@@ -10,6 +10,8 @@ import {
   requireFeature,
   requireLimit,
 } from "@/lib/plans/planEntitlements";
+import { logServerError, safeErrorResponse } from "@/lib/server/security/safeError";
+import { readJson } from "@/lib/server/security/validateRequest";
 
 function planBlockResponse(result, status = 403) {
   return NextResponse.json(
@@ -30,16 +32,15 @@ function planBlockResponse(result, status = 403) {
 export async function GET(request) {
   try {
     await dbConnect();
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
 
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
     const status = searchParams.get("status");
 
-    let query = {};
-
-    if (userId) {
-      query.ownerId = userId;
-    }
+    let query = { ownerId: currentUser.id };
 
     if (status) {
       query.status = status;
@@ -54,14 +55,8 @@ export async function GET(request) {
       sites,
     });
   } catch (error) {
-    console.error("Get sites error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    logServerError("Get sites error", error);
+    return safeErrorResponse();
   }
 }
 
@@ -71,11 +66,14 @@ export async function GET(request) {
  */
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const body = await readJson(request, 24 * 1024);
     await dbConnect();
 
     const { category = "portfolio", templateId, themeId = "emerald" } = body;
     const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
     const entitlementUser = currentUser || { plan: "free" };
 
     const templateAccess = requireFeature(entitlementUser, "templateAccess");
@@ -112,7 +110,7 @@ export async function POST(request) {
     }
 
     const site = new Site({
-      ownerId: currentUser?.id || null,
+      ownerId: currentUser.id,
       category,
       templateId,
       themeId,
@@ -138,13 +136,7 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Create site error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    logServerError("Create site error", error);
+    return safeErrorResponse();
   }
 }

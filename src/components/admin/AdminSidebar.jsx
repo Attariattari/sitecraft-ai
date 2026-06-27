@@ -49,6 +49,9 @@ import {
   ChevronDown,
   ArrowUpRight,
   ShieldCheck,
+  Gift,
+  TicketPercent,
+  RefreshCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/context/UserContext";
@@ -87,6 +90,7 @@ const navGroups = [
     title: "AI CONTROL",
     links: [
       { name: "AI Overview", href: "/admin/ai", icon: Bot },
+      { name: "Blogs", href: "/admin/blogs", icon: FileText },
       {
         name: "Prompt Manager",
         href: "/admin/ai/prompts",
@@ -109,6 +113,9 @@ const navGroups = [
     links: [
       { name: "Plans", href: "/admin/plans", icon: CreditCard },
       { name: "Pricing", href: "/admin/pricing", icon: DollarSign },
+      { name: "Subscriptions", href: "/admin/subscriptions", icon: RefreshCcw },
+      { name: "Membership Invites", href: "/admin/membership-invites", icon: Gift },
+      { name: "Coupons", href: "/admin/coupons", icon: TicketPercent },
       { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
       { name: "Payments", href: "/admin/payments", icon: Receipt },
       { name: "Invoices", href: "/admin/invoices", icon: FileText },
@@ -140,6 +147,7 @@ const navGroups = [
   {
     title: "SUPPORT",
     links: [
+      { name: "Messages", href: "/admin/messages", icon: MessageSquareCode },
       { name: "Support Tickets", href: "/admin/support", icon: HeadphonesIcon },
       { name: "Notifications", href: "/admin/notifications", icon: Bell },
       { name: "Email Templates", href: "/admin/email-templates", icon: Mail },

@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Site from "@/models/Site";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { getPublicBaseUrl } from "@/lib/server/env";
+import { logServerError, safeErrorResponse } from "@/lib/server/security/safeError";
 
 export async function POST(request, { params }) {
   try {
     const { id } = await params;
     await dbConnect();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
 
-    const site = await Site.findById(id);
+    const site = await Site.findOne({ _id: id, ownerId: user.id });
 
     if (!site) {
       return NextResponse.json(
@@ -39,16 +46,10 @@ export async function POST(request, { params }) {
     return NextResponse.json({
       success: true,
       site,
-      publicUrl: `${process.env.NEXT_PUBLIC_APP_URL}/site/${site.slug}`,
+      publicUrl: `${getPublicBaseUrl()}/site/${site.slug}`,
     });
   } catch (error) {
-    console.error("Publish site error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    logServerError("Publish site error", error);
+    return safeErrorResponse();
   }
 }

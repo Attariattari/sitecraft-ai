@@ -5,6 +5,9 @@ import { TEMPLATE_REGISTRY } from "@/lib/templateRegistry";
 import { siteCraftTemplates } from "@/lib/data";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import { getPlanLimits, getUserPlanSlug, requireFeature } from "@/lib/plans/planEntitlements";
+import { logServerError, safeErrorResponse } from "@/lib/server/security/safeError";
+import { getOrSetCache, safeCacheKey } from "@/lib/server/cache/cache";
+import { serverEnv } from "@/lib/server/env";
 
 export async function GET(request) {
   try {
@@ -25,20 +28,19 @@ export async function GET(request) {
       );
     }
 
-    // Try to get from database first
-    let templates = await Template.find({ isActive: true }).sort({ order: 1 });
-
-    // If empty, seed from local data
-    if (templates.length === 0) {
-      const created = await Template.insertMany(siteCraftTemplates);
-      templates = created;
-    }
-
-    // Also include registry templates for current implementation
-    const registryTemplates = Object.values(TEMPLATE_REGISTRY).sort(
-      (a, b) => a.order - b.order
-    );
     const planSlug = getUserPlanSlug(entitlementUser);
+    await getOrSetCache("public:templates:db-seed", serverEnv.CACHE_PUBLIC_TTL_SECONDS, async () => {
+      let templates = await Template.find({ isActive: true }).sort({ order: 1 }).lean();
+      if (templates.length === 0) {
+        const created = await Template.insertMany(siteCraftTemplates);
+        templates = created.map((item) => item.toObject());
+      }
+      return templates.length;
+    });
+    const key = safeCacheKey(["public", "templates", planSlug]);
+    const registryTemplates = await getOrSetCache(key, serverEnv.CACHE_PUBLIC_TTL_SECONDS, async () =>
+      Object.values(TEMPLATE_REGISTRY).sort((a, b) => a.order - b.order),
+    );
     const templateLimit = getPlanLimits(planSlug).templates;
     const visibleTemplates = templateLimit === -1
       ? registryTemplates
@@ -52,13 +54,7 @@ export async function GET(request) {
       totalAvailable: registryTemplates.length,
     });
   } catch (error) {
-    console.error("Get templates error:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    logServerError("Get templates error", error);
+    return safeErrorResponse();
   }
 }

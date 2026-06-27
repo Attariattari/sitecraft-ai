@@ -64,9 +64,25 @@ const exploreGroups = [
   },
 ];
 
+const mobileNavGroups = [
+  { title: "Main", links: navLinks },
+  ...exploreGroups,
+];
+
 function isActivePath(pathname, href) {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function getUserInitials(user) {
+  return user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "U";
 }
 
 function DesktopExploreMenu({ pathname }) {
@@ -203,13 +219,7 @@ function NavUserMenu() {
     }
   };
 
-  const initials = user.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-    : "U";
+  const initials = getUserInitials(user);
 
   const isAdmin = user.role === "admin" || user.role === "super-admin";
 
@@ -317,16 +327,41 @@ function NavUserMenu() {
 }
 
 export function Navbar() {
-  const { user, loading } = useUser();
+  const { user, loading, setUser } = useUser();
   const pathname = usePathname();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 24);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const isAdmin = user?.role === "admin" || user?.role === "super-admin";
+
+  const handleMobileLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        try {
+          const bc = new BroadcastChannel("sitecraft-auth");
+          bc.postMessage({ type: "logout" });
+          bc.close();
+        } catch (e) {
+          console.warn("BroadcastChannel broadcast failed:", e);
+        }
+      }
+      setUser(null);
+      setMobileOpen(false);
+      setMobileAccountOpen(false);
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
 
   return (
     <motion.header
@@ -407,110 +442,275 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile Toggle */}
-        <button
-          className="flex size-10 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground transition-colors hover:bg-primary/10 hover:text-foreground md:hidden"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            {mobileOpen ? (
-              <motion.span
-                key="x"
-                initial={{ rotate: -90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <X className="size-5" />
-              </motion.span>
-            ) : (
-              <motion.span
-                key="menu"
-                initial={{ rotate: 90, opacity: 0 }}
-                animate={{ rotate: 0, opacity: 1 }}
-                exit={{ rotate: -90, opacity: 0 }}
-                transition={{ duration: 0.15 }}
-              >
-                <Menu className="size-5" />
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          {loading ? (
+            <div className="h-10 w-24 rounded-2xl bg-muted animate-pulse" />
+          ) : user ? (
+            <button
+              type="button"
+              onClick={() => {
+                setMobileAccountOpen((value) => !value);
+                setMobileOpen(false);
+              }}
+              className={cn(
+                "flex h-10 max-w-[148px] items-center gap-2 rounded-full border px-2 pr-3 text-left shadow-sm transition-all",
+                mobileAccountOpen
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border bg-card text-foreground hover:border-primary/30 hover:bg-primary/5",
+              )}
+              aria-label="Open account menu"
+            >
+              {user.profileImage?.url ? (
+                <img
+                  src={user.profileImage.url}
+                  alt={user.name}
+                  className="size-7 shrink-0 rounded-full border border-border object-cover"
+                />
+              ) : (
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-[10px] font-black text-primary-foreground">
+                  {getUserInitials(user)}
+                </span>
+              )}
+              <span className="min-w-0 text-xs font-black leading-tight">
+                <span className="block truncate">{user.name}</span>
+                <span className="block truncate text-[10px] uppercase tracking-[0.08em] text-primary">
+                  {user.plan || "Member"}
+                </span>
+              </span>
+              <ChevronDown
+                className={cn(
+                  "size-3 shrink-0 text-muted-foreground transition-transform",
+                  mobileAccountOpen && "rotate-180 text-primary",
+                )}
+              />
+            </button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 rounded-2xl px-3 text-xs font-black"
+              asChild
+            >
+              <Link href="/login">Log in</Link>
+            </Button>
+          )}
+
+          {/* Mobile Toggle */}
+          <button
+            className="flex size-10 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground transition-colors hover:bg-primary/10 hover:text-foreground"
+            onClick={() => {
+              setMobileOpen(!mobileOpen);
+              setMobileAccountOpen(false);
+            }}
+            aria-label="Toggle menu"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              {mobileOpen ? (
+                <motion.span
+                  key="x"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <X className="size-5" />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="menu"
+                  initial={{ rotate: 90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <Menu className="size-5" />
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Account Menu */}
+      <AnimatePresence>
+        {mobileAccountOpen && user && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 top-[76px] z-40 bg-background/30 backdrop-blur-[2px] md:hidden"
+              onClick={() => setMobileAccountOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="absolute left-4 right-4 top-[68px] z-50 overflow-hidden rounded-3xl border border-border bg-card shadow-2xl shadow-primary/10 md:hidden"
+            >
+              <div className="border-b border-border bg-primary/5 p-4">
+                <div className="flex items-center gap-3">
+                  {user.profileImage?.url ? (
+                    <img
+                      src={user.profileImage.url}
+                      alt={user.name}
+                      className="size-11 rounded-full border border-border object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-black text-primary-foreground">
+                      {getUserInitials(user)}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-foreground">
+                      {user.name}
+                    </p>
+                    <p className="truncate text-xs font-semibold text-muted-foreground">
+                      {user.email}
+                    </p>
+                    <p className="mt-1 text-[10px] font-black uppercase tracking-[0.16em] text-primary">
+                      {user.plan || "Member"} Plan
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-1 p-2">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileAccountOpen(false)}
+                  className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-bold text-foreground transition-colors hover:bg-muted"
+                >
+                  <LayoutDashboard className="size-4 text-muted-foreground" />
+                  Dashboard
+                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileAccountOpen(false)}
+                    className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-black text-primary transition-colors hover:bg-primary/10"
+                  >
+                    <ShieldCheck className="size-4" />
+                    Admin Panel
+                  </Link>
+                )}
+                <Link
+                  href="/dashboard/profile"
+                  onClick={() => setMobileAccountOpen(false)}
+                  className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-bold text-foreground transition-colors hover:bg-muted"
+                >
+                  <User className="size-4 text-muted-foreground" />
+                  Profile
+                </Link>
+                <Link
+                  href="/dashboard/settings"
+                  onClick={() => setMobileAccountOpen(false)}
+                  className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-bold text-foreground transition-colors hover:bg-muted"
+                >
+                  <Settings className="size-4 text-muted-foreground" />
+                  Settings
+                </Link>
+                <button
+                  onClick={handleMobileLogout}
+                  className="mt-1 flex w-full items-center gap-3 rounded-2xl border-t border-border px-3 py-3 text-left text-sm font-black text-destructive transition-colors hover:bg-destructive/10"
+                >
+                  <LogOut className="size-4" />
+                  Sign Out
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="overflow-hidden border-b border-border bg-background/95 backdrop-blur-2xl md:hidden"
-          >
-            <div className="container mx-auto flex flex-col gap-4 px-6 py-6">
-              <div className="grid gap-2">
-                {[...navLinks, ...exploreGroups.flatMap((group) => group.links)].map(
-                  (link, index) => {
-                    const active = isActivePath(pathname, link.href);
-                    return (
-                      <motion.div
-                        key={link.href}
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.18, delay: index * 0.015 }}
-                      >
-                        <Link
-                          href={link.href}
-                          className={cn(
-                            "flex items-center justify-between rounded-2xl px-4 py-3 text-base font-black transition",
-                            active
-                              ? "bg-primary/10 text-primary"
-                              : "text-foreground hover:bg-secondary/60 hover:text-primary",
-                          )}
-                          onClick={() => setMobileOpen(false)}
-                        >
-                          {link.label}
-                          <ArrowRight className="size-4 opacity-50" />
-                        </Link>
-                      </motion.div>
-                    );
-                  },
-                )}
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 top-[76px] z-40 bg-background/55 backdrop-blur-sm md:hidden"
+              onClick={() => setMobileOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -14, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -14, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="fixed inset-x-3 top-[84px] z-50 max-h-[calc(100dvh-96px)] overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-2xl shadow-primary/10 md:hidden"
+            >
+              <div className="border-b border-border bg-primary/5 px-4 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">
+                  Navigation
+                </p>
+                <p className="mt-1 text-sm font-bold text-foreground">
+                  Explore SiteCraft AI
+                </p>
               </div>
-              <div className="flex flex-col gap-3 border-t border-border/30 pt-4">
+
+              <div className="max-h-[calc(100dvh-230px)] overflow-y-auto px-3 py-3">
+                <div className="space-y-4">
+                  {mobileNavGroups.map((group, groupIndex) => {
+                    const Icon = group.icon;
+                    return (
+                      <section key={group.title} className="space-y-2">
+                        <div className="flex items-center gap-2 px-2">
+                          {Icon && <Icon className="size-3.5 text-primary" />}
+                          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-muted-foreground">
+                            {group.title}
+                          </p>
+                        </div>
+                        <div className="grid gap-1 rounded-2xl border border-border/70 bg-background/55 p-1.5">
+                          {group.links.map((link, linkIndex) => {
+                            const active = isActivePath(pathname, link.href);
+                            return (
+                              <motion.div
+                                key={link.href}
+                                initial={{ opacity: 0, x: -8 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{
+                                  duration: 0.16,
+                                  delay: (groupIndex * 3 + linkIndex) * 0.012,
+                                }}
+                              >
+                                <Link
+                                  href={link.href}
+                                  className={cn(
+                                    "flex h-11 items-center justify-between rounded-xl px-3 text-sm font-black transition",
+                                    active
+                                      ? "bg-primary text-primary-foreground shadow-sm"
+                                      : "text-foreground hover:bg-muted hover:text-primary",
+                                  )}
+                                  onClick={() => setMobileOpen(false)}
+                                >
+                                  <span className="truncate">{link.label}</span>
+                                  <ArrowRight
+                                    className={cn(
+                                      "size-3.5 shrink-0",
+                                      active
+                                        ? "text-primary-foreground/80"
+                                        : "text-muted-foreground",
+                                    )}
+                                  />
+                                </Link>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 border-t border-border bg-card px-3 py-3">
                 {loading ? (
                   <div className="h-12 rounded-xl bg-muted animate-pulse" />
                 ) : user ? (
                   <>
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      {user.profileImage && user.profileImage.url ? (
-                        <img
-                          src={user.profileImage.url}
-                          alt={user.name}
-                          className="w-10 h-10 rounded-full object-cover border border-border"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground text-sm font-bold">
-                          {user.name
-                            ? user.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()
-                            : "U"}
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm font-bold text-foreground">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground capitalize font-medium">
-                          {user.plan} Plan
-                        </p>
-                      </div>
-                    </div>
                     <Button
                       className="w-full h-12 site-primary-button font-bold"
                       asChild
@@ -522,18 +722,9 @@ export function Navbar() {
                         Go to Dashboard
                       </Link>
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full h-12 font-bold"
-                      asChild
-                    >
-                      <Link
-                        href="/dashboard/profile"
-                        onClick={() => setMobileOpen(false)}
-                      >
-                        Profile
-                      </Link>
-                    </Button>
+                    <p className="px-1 text-center text-xs font-semibold text-muted-foreground">
+                      Account controls are available from your profile button.
+                    </p>
                   </>
                 ) : (
                   <>
@@ -542,19 +733,29 @@ export function Navbar() {
                       className="w-full h-12 font-bold"
                       asChild
                     >
-                      <Link href="/login">Log in</Link>
+                      <Link
+                        href="/login"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        Log in
+                      </Link>
                     </Button>
                     <Button
                       className="w-full h-12 site-primary-button font-bold"
                       asChild
                     >
-                      <Link href="/signup">Get Started Free</Link>
+                      <Link
+                        href="/signup"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        Get Started Free
+                      </Link>
                     </Button>
                   </>
                 )}
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </motion.header>

@@ -14,6 +14,9 @@ import {
   requireLimit,
   getUserPlanSlug,
 } from "@/lib/plans/planEntitlements";
+import { enforceRateLimit } from "@/lib/server/security/rateLimit";
+import { logServerError } from "@/lib/server/security/safeError";
+import { readJson } from "@/lib/server/security/validateRequest";
 
 function planBlockResponse(result, status = 403) {
   return NextResponse.json(
@@ -29,7 +32,9 @@ function planBlockResponse(result, status = 403) {
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const rate = await enforceRateLimit(request, "website-generate", { limit: 6, windowMs: 10 * 60 * 1000 });
+    if (!rate.allowed) return rate.response;
+    const body = await readJson(request, 32 * 1024);
 
     // Validate input
     const validatedData = generateInputSchema.parse(body);
@@ -176,15 +181,14 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Generate API error:", error);
+    logServerError("Generate API error", error);
 
     if (error.name === "ZodError") {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Validation failed",
-          details: error.errors,
-        },
+      {
+        success: false,
+        error: "Validation failed",
+      },
         { status: 400 }
       );
     }
@@ -192,7 +196,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "Failed to generate website",
+        error: "Failed to generate website",
       },
       { status: 500 }
     );

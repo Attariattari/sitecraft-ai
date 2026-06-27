@@ -22,6 +22,27 @@ export async function getActivePlans() {
   return plans.map(serializePublicPlan);
 }
 
+export async function getPublicPlanBySlug(slug) {
+  const normalized = String(slug || "").toLowerCase();
+  if (!["free", "basic", "pro"].includes(normalized)) return null;
+
+  await dbConnect();
+  const plan = await Plan.findOne({
+    slug: normalized,
+    isActive: true,
+    isPublic: true,
+  }).lean();
+
+  if (plan) return serializePublicPlan(plan);
+  return getPublicPlans().map(serializePublicPlan).find((item) => item.slug === normalized) || null;
+}
+
+export async function getPurchasablePlanBySlug(slug) {
+  const plan = await getPublicPlanBySlug(slug);
+  if (!plan || !plan.isPurchasable || plan.slug === "free") return null;
+  return plan;
+}
+
 export async function getAllPlans() {
   await dbConnect();
 

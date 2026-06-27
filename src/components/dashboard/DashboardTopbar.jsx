@@ -57,7 +57,17 @@ function UserMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <Link
+        href="/login"
+        className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-3 text-xs font-black text-foreground shadow-sm transition-colors hover:bg-muted"
+      >
+        <User className="w-4 h-4 text-primary" />
+        <span>Log in</span>
+      </Link>
+    );
+  }
 
   const handleLogout = async () => {
     try {
@@ -94,7 +104,7 @@ function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-muted transition-all border border-transparent hover:border-border"
+        className="flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-2 rounded-xl hover:bg-muted transition-all border border-border/70 sm:border-transparent hover:border-border bg-background/70 sm:bg-transparent"
       >
         {user.profileImage && user.profileImage.url ? (
           <img
@@ -107,8 +117,8 @@ function UserMenu() {
             {initials}
           </div>
         )}
-        <div className="hidden sm:block text-left">
-          <p className="text-sm font-bold text-foreground leading-none">
+        <div className="block text-left max-[420px]:hidden">
+          <p className="max-w-[104px] sm:max-w-[140px] truncate text-xs sm:text-sm font-bold text-foreground leading-none">
             {user.name}
           </p>
           <p className="text-xs text-muted-foreground mt-1 capitalize font-bold">
@@ -117,7 +127,7 @@ function UserMenu() {
         </div>
         <ChevronDown
           className={cn(
-            "w-4 h-4 text-muted-foreground transition-transform hidden sm:block",
+            "w-4 h-4 text-muted-foreground transition-transform hidden min-[421px]:block",
             open && "rotate-180",
           )}
         />
@@ -310,16 +320,19 @@ export function DashboardTopbar() {
     })?.[1] ?? "Dashboard";
 
   return (
-    <header className="h-16 border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-30 flex items-center px-4 lg:px-8 gap-6">
+    <header className="h-16 border-b border-border bg-card/50 backdrop-blur-md sticky top-0 z-30 flex items-center px-3 sm:px-4 lg:px-8 gap-2 sm:gap-3 lg:gap-6">
       {/* Page title */}
       <div className="hidden lg:flex items-center gap-2 min-w-0 mr-auto">
         <h1 className="text-lg font-bold text-foreground truncate">{title}</h1>
+      </div>
+      <div className="lg:hidden min-w-0 mr-auto">
+        <h1 className="truncate text-sm font-black text-foreground">{title}</h1>
       </div>
 
       {/* Search */}
       <div
         className={cn(
-          "flex items-center gap-3 h-10 px-4 rounded-xl border transition-all duration-300 bg-muted/50",
+          "hidden md:flex items-center gap-3 h-10 px-4 rounded-xl border transition-all duration-300 bg-muted/50",
           searchFocused
             ? "border-primary/50 bg-background shadow-md shadow-primary/10 w-72"
             : "border-border w-56",

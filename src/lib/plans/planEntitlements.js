@@ -463,6 +463,9 @@ export function serializePublicPlan(plan) {
     limits: plan.limits,
     ctaLabel: plan.ctaLabel,
     badge: plan.badge,
+    benefits: plan.benefits || [],
+    trialDays: plan.trialDays || 0,
+    bonusMonths: plan.bonusMonths || 0,
     highlights: plan.highlights || [],
   };
 }

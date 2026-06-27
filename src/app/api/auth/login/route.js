@@ -7,10 +7,14 @@ import { loginSchema } from "@/lib/validations/authValidation";
 import { signAuthToken } from "@/lib/auth/tokens";
 import { isRootSuperAdminEmail } from "@/lib/auth/rootSuperAdmin";
 import { safeUserPayload } from "@/lib/auth/safeUser";
+import { enforceRateLimit } from "@/lib/server/security/rateLimit";
+import { readJson } from "@/lib/server/security/validateRequest";
 
 export async function POST(req) {
     try {
-        const body = await req.json();
+        const rate = await enforceRateLimit(req, "auth-login", { limit: 8, windowMs: 10 * 60 * 1000 });
+        if (!rate.allowed) return rate.response;
+        const body = await readJson(req, 16 * 1024);
         const { email, password, rememberMe } = loginSchema.parse(body);
 
         // Root Super Admin special handling: only use OTP flow if a root user

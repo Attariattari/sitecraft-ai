@@ -75,14 +75,16 @@ export function PublicFAQClient({ initialEntries = [] }) {
   const [asking, setAsking] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [openQuestion, setOpenQuestion] = useState("");
+  const [lastLoadedAt, setLastLoadedAt] = useState(Date.now());
 
   const loadFaq = async ({ showToast = false } = {}) => {
     try {
       setRefreshing(true);
-      const res = await fetch("/api/faq", { cache: "no-store" });
+      const res = await fetch("/api/faq");
       const data = await readJsonResponse(res);
       if (data.success && data.entries?.length) {
         setEntries(data.entries);
+        setLastLoadedAt(Date.now());
         if (showToast) toast.success("Help content was updated.");
       }
     } catch (error) {
@@ -93,10 +95,14 @@ export function PublicFAQClient({ initialEntries = [] }) {
   };
 
   useEffect(() => {
-    const onFocus = () => loadFaq({ showToast: true });
+    const onFocus = () => {
+      if (Date.now() - lastLoadedAt > 60 * 1000) {
+        loadFaq({ showToast: true });
+      }
+    };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, []);
+  }, [lastLoadedAt]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();

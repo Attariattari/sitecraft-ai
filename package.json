@@ -12,6 +12,7 @@
     "@babel/parser": "^8.0.0",
     "@google/generative-ai": "^0.8.0",
     "@hookform/resolvers": "^5.4.0",
+    "@upstash/redis": "^1.35.6",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.10.0",

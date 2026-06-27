@@ -45,6 +45,18 @@ function AdminUserMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
+  if (!user) {
+    return (
+      <Link
+        href="/login"
+        className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-3 text-xs font-black text-foreground shadow-sm transition-colors hover:bg-muted"
+      >
+        <ShieldCheck className="w-4 h-4 text-primary" />
+        <span>Log in</span>
+      </Link>
+    );
+  }
+
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -79,7 +91,7 @@ function AdminUserMenu() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted transition-all border border-transparent hover:border-border"
+        className="flex items-center gap-2 sm:gap-3 px-2.5 sm:px-3 py-2 rounded-xl hover:bg-muted transition-all border border-border/70 sm:border-transparent hover:border-border bg-background/70 sm:bg-transparent"
       >
         {user?.profileImage?.url ? (
           <img
@@ -92,8 +104,8 @@ function AdminUserMenu() {
             {initials}
           </div>
         )}
-        <div className="hidden sm:block text-left">
-          <p className="text-xs font-bold text-foreground leading-none">
+        <div className="block text-left max-[420px]:hidden">
+          <p className="max-w-[104px] sm:max-w-[140px] truncate text-xs font-bold text-foreground leading-none">
             {user?.name ?? "Super Admin"}
           </p>
           <p className="text-[10px] text-primary mt-0.5 font-bold">
@@ -102,7 +114,7 @@ function AdminUserMenu() {
         </div>
         <ChevronDown
           className={cn(
-            "w-3.5 h-3.5 text-muted-foreground transition-transform hidden sm:block",
+            "w-3.5 h-3.5 text-muted-foreground transition-transform hidden min-[421px]:block",
             open && "rotate-180",
           )}
         />

@@ -5,10 +5,15 @@ import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
 import { forgotPasswordSchema } from "@/lib/validations/authValidation";
 import { sendPasswordResetEmail } from "@/lib/email/sendPasswordResetEmail";
+import { enforceRateLimit } from "@/lib/server/security/rateLimit";
+import { logServerError } from "@/lib/server/security/safeError";
+import { readJson } from "@/lib/server/security/validateRequest";
 
 export async function POST(req) {
   try {
-    const body = await req.json();
+    const rate = await enforceRateLimit(req, "forgot-password", { limit: 5, windowMs: 15 * 60 * 1000 });
+    if (!rate.allowed) return rate.response;
+    const body = await readJson(req, 8 * 1024);
     const { email } = forgotPasswordSchema.parse(body);
 
     await dbConnect();
@@ -46,7 +51,7 @@ export async function POST(req) {
 
     return NextResponse.json(successMessage);
   } catch (error) {
-    console.error("Forgot password error:", error);
+    logServerError("Forgot password error", error);
     if (error.name === "ZodError") {
       return NextResponse.json(
         { success: false, message: error.errors[0].message },

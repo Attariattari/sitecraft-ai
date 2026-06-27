@@ -2,13 +2,19 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/getCurrentUser";
 import dbConnect from "@/lib/dbConnect";
 import User from "@/models/User";
-const {
+import {
   uploadToCloudinary,
   deleteFromCloudinary,
-} = require("@/lib/cloudinary");
+  validateImageDataUri,
+} from "@/lib/cloudinary";
+import { enforceRateLimit } from "@/lib/server/security/rateLimit";
+import { logServerError, safeErrorResponse } from "@/lib/server/security/safeError";
+import { readJson } from "@/lib/server/security/validateRequest";
 
 export async function POST(req) {
   try {
+    const rate = await enforceRateLimit(req, "profile-image-upload", { limit: 10, windowMs: 10 * 60 * 1000 });
+    if (!rate.allowed) return rate.response;
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
@@ -17,7 +23,7 @@ export async function POST(req) {
       );
     }
 
-    const { image } = await req.json();
+    const { image } = await readJson(req, 7 * 1024 * 1024);
     if (!image) {
       return NextResponse.json(
         { success: false, message: "No image provided" },
@@ -25,11 +31,11 @@ export async function POST(req) {
       );
     }
 
-    // Validate size (max 5MB)
-    const sizeInBytes = (image.length * 3) / 4;
-    if (sizeInBytes > 5 * 1024 * 1024) {
+    try {
+      validateImageDataUri(image, 5 * 1024 * 1024);
+    } catch (error) {
       return NextResponse.json(
-        { success: false, message: "Image size exceeds 5MB" },
+        { success: false, message: error.message },
         { status: 400 },
       );
     }
@@ -42,7 +48,7 @@ export async function POST(req) {
       try {
         await deleteFromCloudinary(dbUser.profileImage.publicId);
       } catch (err) {
-        console.error("Error deleting old image:", err);
+        logServerError("Error deleting old profile image", err);
       }
     }
 
@@ -63,11 +69,8 @@ export async function POST(req) {
       profileImage: dbUser.profileImage,
     });
   } catch (error) {
-    console.error("Profile image upload error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 },
-    );
+    logServerError("Profile image upload error", error);
+    return safeErrorResponse();
   }
 }
 
@@ -100,10 +103,7 @@ export async function DELETE() {
       message: "Profile image removed successfully",
     });
   } catch (error) {
-    console.error("Profile image delete error:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 },
-    );
+    logServerError("Profile image delete error", error);
+    return safeErrorResponse();
   }
 }
